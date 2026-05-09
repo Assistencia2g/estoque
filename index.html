@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="theme-color" content="#0a0d14"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Estoque"/>
+  <title>Estoque de Peças</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0d14;--surface:#12151f;--surface2:#181c2a;--surface3:#1e2338;
+      --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+      --accent:#4f8ef7;--green:#00e5a0;--red:#ff5f6d;--amber:#ffb830;
+      --text:#e8ecf8;--muted:#5a6380;--muted2:#8a93b8;
+      --fd:'Syne',sans-serif;--fm:'DM Mono',monospace;
+    }
+    body{background:var(--bg);color:var(--text);font-family:var(--fd);min-height:100dvh;padding-bottom:70px;overflow-x:hidden;}
+
+    .nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom,0);}
+    .nav-btn{flex:1;background:none;border:none;color:var(--muted);font-family:var(--fd);font-size:9px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;padding:10px 4px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:color 0.2s;-webkit-tap-highlight-color:transparent;}
+    .nav-btn .ico{font-size:20px;}
+    .nav-btn.active{color:var(--accent);}
+
+    .page{display:none;padding:0 0 1rem;}
+    .page.active{display:block;}
+
+    .hdr{padding:1.75rem 1.25rem 0.75rem;position:relative;overflow:hidden;}
+    .hdr::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(79,142,247,0.08) 0%,transparent 70%);pointer-events:none;}
+    .badge{font-family:var(--fm);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);border:1px solid rgba(79,142,247,0.3);padding:3px 10px;border-radius:100px;display:inline-block;margin-bottom:8px;}
+    h1{font-size:22px;font-weight:800;line-height:1.2;}
+    h1 span{color:var(--accent);}
+
+    .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:1rem 1.25rem;}
+    .stat{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1rem;}
+    .stat-label{font-family:var(--fm);font-size:10px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;}
+    .stat-val{font-family:var(--fm);font-size:22px;font-weight:500;}
+    .stat-val.green{color:var(--green);}
+    .stat-val.amber{color:var(--amber);}
+    .stat-val.red{color:var(--red);}
+    .stat-val.blue{color:var(--accent);}
+
+    .section{padding:0 1.25rem;margin-bottom:1rem;}
+    .section-title{font-family:var(--fm);font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:1.25rem;margin-bottom:10px;}
+
+    .form-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:1.25rem;margin:0 1.25rem 1rem;}
+    .field{margin-bottom:14px;}
+    .field:last-child{margin-bottom:0;}
+    .field label{display:block;font-size:12px;color:var(--muted2);margin-bottom:6px;font-family:var(--fm);letter-spacing:0.06em;text-transform:uppercase;}
+    input,select{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;color:var(--text);font-family:var(--fm);font-size:15px;padding:13px 14px;outline:none;appearance:none;-webkit-appearance:none;transition:border-color 0.2s;}
+    input:focus,select:focus{border-color:rgba(79,142,247,0.5);}
+    input[type=number]{-moz-appearance:textfield;}
+    input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
+    select option{background:#181c2a;}
+
+    .tipo-row{display:flex;gap:8px;margin-bottom:16px;}
+    .tipo-btn{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;color:var(--muted2);font-family:var(--fd);font-size:12px;font-weight:600;padding:11px 4px;cursor:pointer;text-align:center;transition:all 0.2s;-webkit-tap-highlight-color:transparent;}
+    .tipo-btn.t-entrada.active{background:rgba(0,229,160,0.1);border-color:rgba(0,229,160,0.35);color:var(--green);}
+    .tipo-btn.t-saida.active{background:rgba(79,142,247,0.1);border-color:rgba(79,142,247,0.35);color:var(--accent);}
+    .tipo-btn.t-devol.active{background:rgba(255,184,48,0.1);border-color:rgba(255,184,48,0.35);color:var(--amber);}
+
+    .btn{width:100%;background:var(--accent);border:none;border-radius:14px;color:#fff;font-family:var(--fd);font-size:15px;font-weight:800;padding:15px;cursor:pointer;letter-spacing:0.02em;transition:all 0.2s;-webkit-tap-highlight-color:transparent;margin-top:4px;}
+    .btn:active{opacity:0.8;transform:scale(0.98);}
+    .btn.green{background:var(--green);color:#000;}
+    .btn.amber{background:var(--amber);color:#000;}
+    .btn.outline{background:transparent;border:1px solid var(--border2);color:var(--muted2);}
+    .btn.danger{background:rgba(255,95,109,0.15);border:1px solid rgba(255,95,109,0.3);color:var(--red);}
+
+    .hist-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1rem 1.25rem;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start;}
+    .hist-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+    .hist-dot.entrada{background:var(--green);}
+    .hist-dot.saida{background:var(--accent);}
+    .hist-dot.devolucao{background:var(--amber);}
+    .hist-dot.defeito{background:var(--red);}
+    .hist-nome{font-size:14px;font-weight:600;margin-bottom:3px;}
+    .hist-info{font-size:12px;color:var(--muted2);font-family:var(--fm);margin-bottom:2px;}
+    .hist-data{font-size:11px;color:var(--muted);font-family:var(--fm);}
+
+    .est-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1rem 1.25rem;margin-bottom:8px;}
+    .est-nome{font-size:15px;font-weight:600;margin-bottom:6px;}
+    .est-row{display:flex;justify-content:space-between;align-items:flex-end;}
+    .est-info{font-size:12px;color:var(--muted2);font-family:var(--fm);line-height:1.7;}
+    .est-qty{font-family:var(--fm);font-size:26px;font-weight:500;}
+    .est-qty.ok{color:var(--green);}
+    .est-qty.low{color:var(--amber);}
+    .est-qty.zero{color:var(--red);}
+
+    .recibo-section{margin-bottom:1.25rem;}
+    .recibo-loja{font-size:15px;font-weight:800;color:var(--accent);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border2);}
+    .recibo-item{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);}
+    .recibo-item:last-child{border-bottom:none;}
+    .recibo-nome{font-size:13px;color:var(--text);}
+    .recibo-qtd{font-size:11px;color:var(--muted2);font-family:var(--fm);}
+    .recibo-val{font-family:var(--fm);font-size:13px;color:var(--green);white-space:nowrap;margin-left:8px;}
+    .recibo-total-loja{display:flex;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid var(--border2);}
+    .recibo-total-loja span:first-child{font-size:12px;color:var(--muted2);font-family:var(--fm);}
+    .recibo-total-loja span:last-child{font-family:var(--fm);font-size:14px;font-weight:500;color:var(--amber);}
+    .recibo-grand{background:var(--surface2);border-radius:14px;padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;margin-top:1rem;}
+    .recibo-grand span:first-child{font-size:14px;font-weight:600;}
+    .recibo-grand span:last-child{font-family:var(--fm);font-size:24px;font-weight:500;color:var(--green);}
+
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;align-items:flex-end;}
+    .modal-overlay.open{display:flex;}
+    .modal{background:var(--surface);border-radius:24px 24px 0 0;padding:1.5rem 1.25rem 2rem;width:100%;max-height:90dvh;overflow-y:auto;}
+    .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;}
+    .modal-title{font-size:18px;font-weight:800;}
+    .modal-close{background:var(--surface2);border:none;color:var(--muted2);font-size:16px;width:32px;height:32px;border-radius:50%;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+
+    .empty{text-align:center;padding:3rem 1rem;color:var(--muted);font-family:var(--fm);font-size:13px;}
+    .empty-ico{font-size:40px;margin-bottom:12px;}
+
+    .toast{position:fixed;top:1.25rem;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:10px 18px;font-size:13px;font-family:var(--fm);color:var(--text);z-index:300;transition:transform 0.3s;white-space:nowrap;pointer-events:none;}
+    .toast.show{transform:translateX(-50%) translateY(0);}
+
+    .tag{display:inline-block;font-size:11px;font-family:var(--fm);padding:2px 8px;border-radius:100px;}
+    .tag.entrada{background:rgba(0,229,160,0.12);color:var(--green);}
+    .tag.saida{background:rgba(79,142,247,0.12);color:var(--accent);}
+    .tag.devolucao{background:rgba(255,184,48,0.12);color:var(--amber);}
+    .tag.defeito{background:rgba(255,95,109,0.12);color:var(--red);}
+    .divider{border:none;border-top:1px solid var(--border);margin:1rem 0;}
+    .info-box{background:var(--surface2);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--muted2);line-height:1.6;margin-bottom:1rem;}
+  </style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- MODAL RECIBO -->
+<div class="modal-overlay" id="modalRecibo">
+  <div class="modal">
+    <div class="modal-header">
+      <p class="modal-title">🧾 Recibo de Peças</p>
+      <button class="modal-close" onclick="fecharRecibo()">✕</button>
+    </div>
+    <div id="reciboConteudo"></div>
+    <button class="btn green" style="margin-top:1.5rem;" onclick="compartilharRecibo()">📤 Compartilhar recibo</button>
+    <button class="btn outline" style="margin-top:8px;" onclick="fecharRecibo()">Fechar</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="ir('inicio')" id="nav-inicio"><span class="ico">🏠</span>Início</button>
+  <button class="nav-btn" onclick="ir('registrar')" id="nav-registrar"><span class="ico">➕</span>Registrar</button>
+  <button class="nav-btn" onclick="ir('estoque')" id="nav-estoque"><span class="ico">📦</span>Estoque</button>
+  <button class="nav-btn" onclick="ir('historico')" id="nav-historico"><span class="ico">📋</span>Histórico</button>
+  <button class="nav-btn" onclick="ir('recibo')" id="nav-recibo"><span class="ico">🧾</span>Recibo</button>
+</nav>
+
+<!-- INÍCIO -->
+<div class="page active" id="page-inicio">
+  <div class="hdr">
+    <div class="badge">Assistência Técnica</div>
+    <h1>Controle de<br><span>Peças</span></h1>
+  </div>
+  <div class="stats" id="stats-box"></div>
+  <div class="section">
+    <p class="section-title">Últimas movimentações</p>
+    <div id="ultimas"></div>
+  </div>
+</div>
+
+<!-- REGISTRAR -->
+<div class="page" id="page-registrar">
+  <div class="hdr">
+    <div class="badge">Nova movimentação</div>
+    <h1>Registrar <span>Peça</span></h1>
+  </div>
+  <div class="form-card">
+    <div class="tipo-row">
+      <button class="tipo-btn t-entrada active" onclick="setTipo('entrada')">📥 Entrada</button>
+      <button class="tipo-btn t-saida" onclick="setTipo('saida')">🔧 Saída</button>
+      <button class="tipo-btn t-devol" onclick="setTipo('devolucao')">↩️ Devol.</button>
+    </div>
+
+    <!-- ENTRADA -->
+    <div id="form-entrada">
+      <div class="field"><label>Nome da peça</label><input type="text" id="e-nome" placeholder="Ex: Tela Samsung A20s"/></div>
+      <div class="field"><label>Fornecedor</label><input type="text" id="e-fornecedor" placeholder="Nome do fornecedor"/></div>
+      <div class="field"><label>Quantidade</label><input type="number" id="e-qty" placeholder="1" min="1" inputmode="numeric"/></div>
+      <div class="field"><label>Valor unitário (R$)</label><input type="number" id="e-valor" placeholder="0.00" min="0" step="0.01" inputmode="decimal"/></div>
+      <button class="btn green" onclick="registrarEntrada()">Registrar entrada</button>
+    </div>
+
+    <!-- SAÍDA -->
+    <div id="form-saida" style="display:none;">
+      <div class="field"><label>Peça utilizada</label><select id="s-peca"><option value="">Selecione uma peça...</option></select></div>
+      <div class="field"><label>Loja</label>
+        <select id="s-loja">
+          <option value="">Selecione a loja...</option>
+          <option>Américas</option><option>Recreio</option><option>Rio Designer</option><option>Center</option><option>Metropolitano</option>
+        </select>
+      </div>
+      <div class="field"><label>Quantidade</label><input type="number" id="s-qty" placeholder="1" min="1" inputmode="numeric"/></div>
+      <div class="field"><label>Observação (opcional)</label><input type="text" id="s-obs" placeholder="Ex: iPhone 13 Pro Max"/></div>
+      <button class="btn" onclick="registrarSaida()">Registrar saída</button>
+    </div>
+
+    <!-- DEVOLUÇÃO -->
+    <div id="form-devolucao" style="display:none;">
+      <div class="field"><label>Peça</label><select id="d-peca"><option value="">Selecione uma peça...</option></select></div>
+      <div class="field"><label>Motivo</label>
+        <select id="d-motivo">
+          <option value="devolucao">Devolução ao fornecedor</option>
+          <option value="defeito">Defeito / Não funcionou</option>
+        </select>
+      </div>
+      <div class="field"><label>Quantidade</label><input type="number" id="d-qty" placeholder="1" min="1" inputmode="numeric"/></div>
+      <div class="field"><label>Observação (opcional)</label><input type="text" id="d-obs" placeholder="Descreva o problema..."/></div>
+      <button class="btn amber" onclick="registrarDevolucao()">Registrar devolução</button>
+    </div>
+  </div>
+</div>
+
+<!-- ESTOQUE -->
+<div class="page" id="page-estoque">
+  <div class="hdr">
+    <div class="badge">Em estoque</div>
+    <h1>Peças <span>Disponíveis</span></h1>
+  </div>
+  <div class="section"><div id="lista-estoque"></div></div>
+</div>
+
+<!-- HISTÓRICO -->
+<div class="page" id="page-historico">
+  <div class="hdr">
+    <div class="badge">Movimentações</div>
+    <h1>Histórico <span>Completo</span></h1>
+  </div>
+  <div class="section">
+    <button class="btn danger" onclick="limparHistorico()" style="margin-bottom:1rem;font-size:13px;padding:11px;">🗑 Limpar todo o histórico</button>
+    <div id="lista-historico"></div>
+  </div>
+</div>
+
+<!-- RECIBO -->
+<div class="page" id="page-recibo">
+  <div class="hdr">
+    <div class="badge">Fechamento</div>
+    <h1>Gerar <span>Recibo</span></h1>
+  </div>
+  <div class="section">
+    <div class="info-box">Somente saídas são incluídas. Devoluções e defeitos são excluídos automaticamente.</div>
+    <div class="field" style="margin-bottom:1rem;">
+      <label style="font-family:var(--fm);font-size:11px;color:var(--muted2);display:block;margin-bottom:6px;letter-spacing:0.08em;text-transform:uppercase;">Período</label>
+      <select id="filtro-periodo" onchange="renderRecibo()">
+        <option value="tudo">Todo o período</option>
+        <option value="hoje">Hoje</option>
+        <option value="semana">Últimos 7 dias</option>
+        <option value="mes">Este mês</option>
+      </select>
+    </div>
+    <div id="recibo-preview"></div>
+    <button class="btn green" onclick="abrirRecibo()" style="margin-top:1rem;">Gerar e compartilhar recibo</button>
+  </div>
+</div>
+
+<script>
+const LOJAS = ['Américas','Recreio','Rio Designer','Center','Metropolitano'];
+let tipoAtual = 'entrada';
+let reciboCache = {};
+
+function dados(){ return JSON.parse(localStorage.getItem('est_movs')||'[]'); }
+function salvar(m){ localStorage.setItem('est_movs', JSON.stringify(m)); }
+function fmt(v){ return 'R$ '+(+v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtData(ts){ const d=new Date(ts); return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+function ir(pg){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+pg).classList.add('active');
+  document.getElementById('nav-'+pg).classList.add('active');
+  if(pg==='inicio') renderInicio();
+  if(pg==='estoque') renderEstoque();
+  if(pg==='historico') renderHistorico();
+  if(pg==='registrar') popularSelects();
+  if(pg==='recibo') renderRecibo();
+}
+
+function setTipo(t){
+  tipoAtual=t;
+  document.querySelectorAll('.tipo-btn').forEach(b=>b.classList.remove('active'));
+  const map={entrada:'t-entrada',saida:'t-saida',devolucao:'t-devol'};
+  document.querySelector('.tipo-btn.'+map[t]).classList.add('active');
+  ['entrada','saida','devolucao'].forEach(f=>{
+    document.getElementById('form-'+f).style.display=f===t?'block':'none';
+  });
+  if(t!=='entrada') popularSelects();
+}
+
+function calcEstoque(movs){
+  const est={};
+  movs.forEach(m=>{
+    if(!est[m.nome]) est[m.nome]={qty:0,valor:0,fornecedor:''};
+    if(m.tipo==='entrada'){ est[m.nome].qty+=m.qty; est[m.nome].valor=m.valor; if(m.fornecedor) est[m.nome].fornecedor=m.fornecedor; }
+    if(m.tipo==='saida') est[m.nome].qty-=m.qty;
+    if(m.tipo==='devolucao'||m.tipo==='defeito') est[m.nome].qty-=m.qty;
+  });
+  return est;
+}
+
+function popularSelects(){
+  const movs=dados();
+  const est=calcEstoque(movs);
+  const pecas=Object.keys(est).filter(k=>est[k].qty>0);
+  ['s-peca','d-peca'].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel) return;
+    const atual=sel.value;
+    sel.innerHTML='<option value="">Selecione uma peça...</option>';
+    pecas.forEach(nome=>{
+      const op=document.createElement('option');
+      op.value=nome;
+      op.textContent=nome+' (x'+est[nome].qty+' · '+fmt(est[nome].valor)+')';
+      sel.appendChild(op);
+    });
+    if(atual) sel.value=atual;
+  });
+}
+
+function registrarEntrada(){
+  const nome=document.getElementById('e-nome').value.trim();
+  const fornecedor=document.getElementById('e-fornecedor').value.trim();
+  const qty=parseInt(document.getElementById('e-qty').value)||0;
+  const valor=parseFloat(document.getElementById('e-valor').value)||0;
+  if(!nome||qty<=0||valor<=0){toast('⚠ Preencha todos os campos');return;}
+  const movs=dados();
+  movs.unshift({id:Date.now(),tipo:'entrada',nome,fornecedor,qty,valor,ts:Date.now()});
+  salvar(movs);
+  document.getElementById('e-nome').value='';
+  document.getElementById('e-fornecedor').value='';
+  document.getElementById('e-qty').value='';
+  document.getElementById('e-valor').value='';
+  toast('✅ Entrada registrada!');
+}
+
+function registrarSaida(){
+  const nome=document.getElementById('s-peca').value;
+  const loja=document.getElementById('s-loja').value;
+  const qty=parseInt(document.getElementById('s-qty').value)||0;
+  const obs=document.getElementById('s-obs').value.trim();
+  if(!nome||!loja||qty<=0){toast('⚠ Preencha todos os campos');return;}
+  const movs=dados();
+  const est=calcEstoque(movs);
+  if(!est[nome]||est[nome].qty<qty){toast('⚠ Estoque insuficiente');return;}
+  const valor=est[nome].valor;
+  movs.unshift({id:Date.now(),tipo:'saida',nome,loja,qty,valor,obs,ts:Date.now()});
+  salvar(movs);
+  document.getElementById('s-peca').value='';
+  document.getElementById('s-loja').value='';
+  document.getElementById('s-qty').value='';
+  document.getElementById('s-obs').value='';
+  popularSelects();
+  toast('✅ Saída registrada!');
+}
+
+function registrarDevolucao(){
+  const nome=document.getElementById('d-peca').value;
+  const motivo=document.getElementById('d-motivo').value;
+  const qty=parseInt(document.getElementById('d-qty').value)||0;
+  const obs=document.getElementById('d-obs').value.trim();
+  if(!nome||qty<=0){toast('⚠ Preencha todos os campos');return;}
+  const movs=dados();
+  const est=calcEstoque(movs);
+  if(!est[nome]||est[nome].qty<qty){toast('⚠ Estoque insuficiente');return;}
+  movs.unshift({id:Date.now(),tipo:motivo,nome,qty,valor:est[nome].valor,obs,ts:Date.now()});
+  salvar(movs);
+  document.getElementById('d-peca').value='';
+  document.getElementById('d-qty').value='';
+  document.getElementById('d-obs').value='';
+  popularSelects();
+  toast('✅ Registrado!');
+}
+
+function tagTipo(t){
+  const map={entrada:'Entrada',saida:'Saída',devolucao:'Devolução',defeito:'Defeito'};
+  return `<span class="tag ${t}">${map[t]||t}</span>`;
+}
+
+function renderInicio(){
+  const movs=dados();
+  const est=calcEstoque(movs);
+  const pecas=Object.keys(est);
+  const totalPecas=pecas.length;
+  const totalItens=pecas.reduce((a,k)=>a+Math.max(est[k].qty,0),0);
+  const saidas=movs.filter(m=>m.tipo==='saida');
+  const totalValor=saidas.reduce((a,m)=>a+(m.valor*m.qty),0);
+  const semEstoque=pecas.filter(k=>est[k].qty<=0).length;
+
+  document.getElementById('stats-box').innerHTML=`
+    <div class="stat"><p class="stat-label">Tipos de peça</p><p class="stat-val blue">${totalPecas}</p></div>
+    <div class="stat"><p class="stat-label">Itens em estoque</p><p class="stat-val green">${totalItens}</p></div>
+    <div class="stat"><p class="stat-label">Total em saídas</p><p class="stat-val amber">${fmt(totalValor)}</p></div>
+    <div class="stat"><p class="stat-label">Sem estoque</p><p class="stat-val ${semEstoque>0?'red':'green'}">${semEstoque}</p></div>`;
+
+  const ul=document.getElementById('ultimas');
+  const ultimas=movs.slice(0,6);
+  if(!ultimas.length){ul.innerHTML='<div class="empty"><div class="empty-ico">📭</div>Nenhuma movimentação ainda</div>';return;}
+  ul.innerHTML=ultimas.map(m=>`
+    <div class="hist-item">
+      <div class="hist-dot ${m.tipo}"></div>
+      <div style="flex:1;">
+        <p class="hist-nome">${m.nome}</p>
+        <p class="hist-info">${tagTipo(m.tipo)}${m.loja?' · '+m.loja:''}</p>
+        <p class="hist-info">x${m.qty} · ${fmt((m.valor||0)*m.qty)}</p>
+        <p class="hist-data">${fmtData(m.ts)}</p>
+      </div>
+    </div>`).join('');
+}
+
+function renderEstoque(){
+  const movs=dados();
+  const est=calcEstoque(movs);
+  const pecas=Object.keys(est);
+  const el=document.getElementById('lista-estoque');
+  if(!pecas.length){el.innerHTML='<div class="empty"><div class="empty-ico">📦</div>Nenhuma peça cadastrada ainda</div>';return;}
+  el.innerHTML=pecas.map(nome=>{
+    const e=est[nome];
+    const cls=e.qty<=0?'zero':e.qty<=2?'low':'ok';
+    return `<div class="est-item">
+      <p class="est-nome">${nome}</p>
+      <div class="est-row">
+        <div class="est-info">
+          <div>${e.fornecedor||'—'}</div>
+          <div>${fmt(e.valor)} / unid.</div>
+          <div>Total: ${fmt(e.valor*Math.max(e.qty,0))}</div>
+        </div>
+        <p class="est-qty ${cls}">${e.qty}</p>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderHistorico(){
+  const movs=dados();
+  const el=document.getElementById('lista-historico');
+  if(!movs.length){el.innerHTML='<div class="empty"><div class="empty-ico">📋</div>Nenhuma movimentação ainda</div>';return;}
+  el.innerHTML=movs.map(m=>`
+    <div class="hist-item">
+      <div class="hist-dot ${m.tipo}"></div>
+      <div style="flex:1;">
+        <p class="hist-nome">${m.nome}</p>
+        <p class="hist-info">${tagTipo(m.tipo)}${m.loja?' · '+m.loja:''}${m.obs?' · '+m.obs:''}</p>
+        <p class="hist-info">x${m.qty} · ${fmt((m.valor||0)*m.qty)}</p>
+        <p class="hist-data">${fmtData(m.ts)}</p>
+      </div>
+    </div>`).join('');
+}
+
+function filtrarPeriodo(movs,periodo){
+  const agora=Date.now();
+  const hoje=new Date(); hoje.setHours(0,0,0,0);
+  const mesInicio=new Date(); mesInicio.setDate(1); mesInicio.setHours(0,0,0,0);
+  return movs.filter(m=>{
+    if(periodo==='tudo') return true;
+    if(periodo==='hoje') return m.ts>=hoje.getTime();
+    if(periodo==='semana') return m.ts>=agora-7*24*60*60*1000;
+    if(periodo==='mes') return m.ts>=mesInicio.getTime();
+    return true;
+  });
+}
+
+function calcReciboData(periodo){
+  const movs=filtrarPeriodo(dados(),periodo).filter(m=>m.tipo==='saida');
+  const por_loja={};
+  movs.forEach(m=>{
+    if(!por_loja[m.loja]) por_loja[m.loja]={};
+    if(!por_loja[m.loja][m.nome]) por_loja[m.loja][m.nome]={qty:0,valor:m.valor};
+    por_loja[m.loja][m.nome].qty+=m.qty;
+  });
+  return por_loja;
+}
+
+function renderRecibo(){
+  const periodo=document.getElementById('filtro-periodo').value;
+  reciboCache=calcReciboData(periodo);
+  const el=document.getElementById('recibo-preview');
+  const lojas=LOJAS.filter(l=>reciboCache[l]);
+  if(!lojas.length){el.innerHTML='<div class="empty"><div class="empty-ico">🧾</div>Nenhuma saída no período selecionado</div>';return;}
+  let grand=0;
+  let html='';
+  lojas.forEach(loja=>{
+    const pecas=reciboCache[loja];
+    let totalLoja=0;
+    let itens='';
+    Object.keys(pecas).forEach(nome=>{
+      const p=pecas[nome];
+      const sub=p.qty*p.valor;
+      totalLoja+=sub;
+      itens+=`<div class="recibo-item">
+        <div><p class="recibo-nome">${nome}</p><p class="recibo-qtd">x${p.qty} · ${fmt(p.valor)}/un</p></div>
+        <p class="recibo-val">${fmt(sub)}</p>
+      </div>`;
+    });
+    grand+=totalLoja;
+    html+=`<div class="card recibo-section">
+      <p class="recibo-loja">📍 ${loja}</p>
+      ${itens}
+      <div class="recibo-total-loja"><span>Subtotal ${loja}</span><span>${fmt(totalLoja)}</span></div>
+    </div>`;
+  });
+  html+=`<div class="recibo-grand"><span>Total geral</span><span>${fmt(grand)}</span></div>`;
+  el.innerHTML=html;
+}
+
+function abrirRecibo(){
+  const lojas=LOJAS.filter(l=>reciboCache[l]);
+  if(!lojas.length){toast('⚠ Nenhuma saída no período');return;}
+  let grand=0;
+  const dataHora=new Date().toLocaleDateString('pt-BR')+' às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  let html=`<p style="font-size:12px;color:var(--muted2);font-family:var(--fm);margin-bottom:1.25rem;">Gerado em ${dataHora}</p>`;
+  lojas.forEach(loja=>{
+    const pecas=reciboCache[loja];
+    let totalLoja=0;
+    let itens='';
+    Object.keys(pecas).forEach(nome=>{
+      const p=pecas[nome];
+      const sub=p.qty*p.valor;
+      totalLoja+=sub;
+      itens+=`<div class="recibo-item">
+        <div><p class="recibo-nome">${nome}</p><p class="recibo-qtd">x${p.qty} · ${fmt(p.valor)}/un</p></div>
+        <p class="recibo-val">${fmt(sub)}</p>
+      </div>`;
+    });
+    grand+=totalLoja;
+    html+=`<div class="recibo-section">
+      <p class="recibo-loja">📍 ${loja}</p>
+      ${itens}
+      <div class="recibo-total-loja"><span>Subtotal ${loja}</span><span>${fmt(totalLoja)}</span></div>
+    </div><hr class="divider"/>`;
+  });
+  html+=`<div class="recibo-grand"><span>💰 Total geral</span><span>${fmt(grand)}</span></div>`;
+  document.getElementById('reciboConteudo').innerHTML=html;
+  document.getElementById('modalRecibo').classList.add('open');
+}
+
+function fecharRecibo(){
+  document.getElementById('modalRecibo').classList.remove('open');
+}
+
+function compartilharRecibo(){
+  const lojas=LOJAS.filter(l=>reciboCache[l]);
+  if(!lojas.length){toast('⚠ Sem dados');return;}
+  const dataHora=new Date().toLocaleDateString('pt-BR');
+  let txt=`🧾 RECIBO DE PEÇAS — ${dataHora}\n${'─'.repeat(32)}\n\n`;
+  let grand=0;
+  lojas.forEach(loja=>{
+    txt+=`📍 ${loja}\n`;
+    let total=0;
+    Object.keys(reciboCache[loja]).forEach(nome=>{
+      const p=reciboCache[loja][nome];
+      const sub=p.qty*p.valor;
+      total+=sub;
+      txt+=`  • ${nome} x${p.qty} = ${fmt(sub)}\n`;
+    });
+    txt+=`  Subtotal: ${fmt(total)}\n\n`;
+    grand+=total;
+  });
+  txt+=`${'─'.repeat(32)}\n💰 TOTAL GERAL: ${fmt(grand)}`;
+  if(navigator.share){
+    navigator.share({title:'Recibo de Peças',text:txt}).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(txt).then(()=>toast('✅ Copiado!'));
+  }
+}
+
+function limparHistorico(){
+  if(!confirm('Isso apagará TODOS os dados permanentemente. Tem certeza?')) return;
+  localStorage.removeItem('est_movs');
+  renderHistorico();
+  renderInicio();
+  toast('🗑 Histórico limpo');
+}
+
+renderInicio();
+</script>
+</body>
+</html>
