@@ -51,12 +51,15 @@
     .form-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:1.25rem;margin:0 1.25rem 1rem;}
     .field{margin-bottom:14px;}
     .field:last-child{margin-bottom:0;}
-    .field label{display:block;font-size:12px;color:var(--muted2);margin-bottom:6px;font-family:var(--fm);letter-spacing:0.06em;text-transform:uppercase;}
+    .field label{display:block;font-size:11px;color:var(--muted2);margin-bottom:6px;font-family:var(--fm);letter-spacing:0.07em;text-transform:uppercase;}
     input,select{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;color:var(--text);font-family:var(--fm);font-size:15px;padding:13px 14px;outline:none;appearance:none;-webkit-appearance:none;transition:border-color 0.2s;}
     input:focus,select:focus{border-color:rgba(79,142,247,0.5);}
     input[type=number]{-moz-appearance:textfield;}
     input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
     select option{background:#181c2a;}
+    input::placeholder{color:var(--muted);}
+
+    .opcional-label{font-size:11px;color:var(--amber);font-family:var(--fm);margin-left:6px;opacity:0.8;}
 
     .tipo-row{display:flex;gap:8px;margin-bottom:16px;}
     .tipo-btn{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;color:var(--muted2);font-family:var(--fd);font-size:12px;font-weight:600;padding:11px 4px;cursor:pointer;text-align:center;transition:all 0.2s;-webkit-tap-highlight-color:transparent;}
@@ -70,6 +73,12 @@
     .btn.amber{background:var(--amber);color:#000;}
     .btn.outline{background:transparent;border:1px solid var(--border2);color:var(--muted2);}
     .btn.danger{background:rgba(255,95,109,0.15);border:1px solid rgba(255,95,109,0.3);color:var(--red);}
+    .btn.print-btn{background:var(--surface2);border:1px solid var(--border2);color:var(--text);font-size:14px;}
+
+    /* SEARCH BAR */
+    .search-wrap{position:relative;margin-bottom:1rem;}
+    .search-wrap input{padding-left:40px;background:var(--surface);border-color:var(--border);}
+    .search-ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;}
 
     .hist-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1rem 1.25rem;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start;}
     .hist-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:5px;}
@@ -84,39 +93,43 @@
     .est-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1rem 1.25rem;margin-bottom:8px;}
     .est-nome{font-size:15px;font-weight:600;margin-bottom:6px;}
     .est-row{display:flex;justify-content:space-between;align-items:flex-end;}
-    .est-info{font-size:12px;color:var(--muted2);font-family:var(--fm);line-height:1.7;}
+    .est-info{font-size:12px;color:var(--muted2);font-family:var(--fm);line-height:1.8;}
     .est-qty{font-family:var(--fm);font-size:26px;font-weight:500;}
     .est-qty.ok{color:var(--green);}
     .est-qty.low{color:var(--amber);}
     .est-qty.zero{color:var(--red);}
 
-    .recibo-section{margin-bottom:1.25rem;}
-    .recibo-loja{font-size:15px;font-weight:800;color:var(--accent);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border2);}
-    .recibo-item{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);}
-    .recibo-item:last-child{border-bottom:none;}
-    .recibo-nome{font-size:13px;color:var(--text);}
-    .recibo-qtd{font-size:11px;color:var(--muted2);font-family:var(--fm);}
-    .recibo-val{font-family:var(--fm);font-size:13px;color:var(--green);white-space:nowrap;margin-left:8px;}
-    .recibo-total-loja{display:flex;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid var(--border2);}
-    .recibo-total-loja span:first-child{font-size:12px;color:var(--muted2);font-family:var(--fm);}
-    .recibo-total-loja span:last-child{font-family:var(--fm);font-size:14px;font-weight:500;color:var(--amber);}
-    .recibo-grand{background:var(--surface2);border-radius:14px;padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;margin-top:1rem;}
-    .recibo-grand span:first-child{font-size:14px;font-weight:600;}
-    .recibo-grand span:last-child{font-family:var(--fm);font-size:24px;font-weight:500;color:var(--green);}
-
+    /* MODAL */
     .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;align-items:flex-end;}
     .modal-overlay.open{display:flex;}
-    .modal{background:var(--surface);border-radius:24px 24px 0 0;padding:1.5rem 1.25rem 2rem;width:100%;max-height:90dvh;overflow-y:auto;}
+    .modal{background:var(--surface);border-radius:24px 24px 0 0;padding:1.5rem 1.25rem 2rem;width:100%;max-height:92dvh;overflow-y:auto;}
     .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;}
     .modal-title{font-size:18px;font-weight:800;}
     .modal-close{background:var(--surface2);border:none;color:var(--muted2);font-size:16px;width:32px;height:32px;border-radius:50%;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 
+    /* RECIBO PRINT LAYOUT */
+    .recibo-print{background:#fff;color:#111;border-radius:16px;padding:1.5rem;margin-top:1rem;font-family:'DM Mono',monospace;}
+    .rp-header{text-align:center;border-bottom:2px solid #111;padding-bottom:12px;margin-bottom:16px;}
+    .rp-title{font-size:18px;font-weight:700;font-family:'Syne',sans-serif;color:#111;letter-spacing:0.05em;}
+    .rp-sub{font-size:11px;color:#555;margin-top:4px;}
+    .rp-loja-title{font-size:13px;font-weight:700;color:#111;background:#f0f0f0;padding:6px 10px;border-radius:6px;margin:14px 0 8px;font-family:'Syne',sans-serif;}
+    .rp-item{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px dashed #ddd;gap:8px;}
+    .rp-item:last-child{border-bottom:none;}
+    .rp-nome{font-size:12px;color:#222;flex:1;}
+    .rp-det{font-size:10px;color:#777;margin-top:1px;}
+    .rp-val{font-size:12px;font-weight:600;color:#111;white-space:nowrap;}
+    .rp-subtotal{display:flex;justify-content:space-between;margin-top:8px;padding-top:6px;border-top:1px solid #ccc;font-size:12px;color:#555;}
+    .rp-subtotal span:last-child{font-weight:600;color:#333;}
+    .rp-grand{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:12px;border-top:2px solid #111;}
+    .rp-grand span:first-child{font-size:14px;font-weight:700;font-family:'Syne',sans-serif;color:#111;}
+    .rp-grand span:last-child{font-size:18px;font-weight:700;color:#111;}
+    .rp-footer{text-align:center;font-size:10px;color:#aaa;margin-top:16px;padding-top:12px;border-top:1px dashed #ddd;}
+    .rp-frete-note{font-size:10px;color:#888;font-style:italic;}
+
     .empty{text-align:center;padding:3rem 1rem;color:var(--muted);font-family:var(--fm);font-size:13px;}
     .empty-ico{font-size:40px;margin-bottom:12px;}
-
     .toast{position:fixed;top:1.25rem;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:10px 18px;font-size:13px;font-family:var(--fm);color:var(--text);z-index:300;transition:transform 0.3s;white-space:nowrap;pointer-events:none;}
     .toast.show{transform:translateX(-50%) translateY(0);}
-
     .tag{display:inline-block;font-size:11px;font-family:var(--fm);padding:2px 8px;border-radius:100px;}
     .tag.entrada{background:rgba(0,229,160,0.12);color:var(--green);}
     .tag.saida{background:rgba(79,142,247,0.12);color:var(--accent);}
@@ -124,6 +137,13 @@
     .tag.defeito{background:rgba(255,95,109,0.12);color:var(--red);}
     .divider{border:none;border-top:1px solid var(--border);margin:1rem 0;}
     .info-box{background:var(--surface2);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--muted2);line-height:1.6;margin-bottom:1rem;}
+    .frete-highlight{background:rgba(255,184,48,0.08);border:1px solid rgba(255,184,48,0.2);border-radius:12px;padding:10px 14px;margin-top:-6px;margin-bottom:14px;font-size:12px;color:var(--amber);font-family:var(--fm);}
+
+    @media print{
+      body{background:#fff!important;padding:0!important;}
+      .nav,.hdr,.btn,.modal-header,.info-box,.section>*:not(.recibo-print){display:none!important;}
+      .recibo-print{border-radius:0;padding:1rem;}
+    }
   </style>
 </head>
 <body>
@@ -134,11 +154,12 @@
 <div class="modal-overlay" id="modalRecibo">
   <div class="modal">
     <div class="modal-header">
-      <p class="modal-title">🧾 Recibo de Peças</p>
+      <p class="modal-title">🧾 Recibo</p>
       <button class="modal-close" onclick="fecharRecibo()">✕</button>
     </div>
     <div id="reciboConteudo"></div>
-    <button class="btn green" style="margin-top:1.5rem;" onclick="compartilharRecibo()">📤 Compartilhar recibo</button>
+    <button class="btn green" style="margin-top:1rem;" onclick="compartilharRecibo()">📤 Compartilhar (texto)</button>
+    <button class="btn print-btn" style="margin-top:8px;" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
     <button class="btn outline" style="margin-top:8px;" onclick="fecharRecibo()">Fechar</button>
   </div>
 </div>
@@ -184,12 +205,19 @@
       <div class="field"><label>Fornecedor</label><input type="text" id="e-fornecedor" placeholder="Nome do fornecedor"/></div>
       <div class="field"><label>Quantidade</label><input type="number" id="e-qty" placeholder="1" min="1" inputmode="numeric"/></div>
       <div class="field"><label>Valor unitário (R$)</label><input type="number" id="e-valor" placeholder="0.00" min="0" step="0.01" inputmode="decimal"/></div>
+      <div class="field">
+        <label>Frete <span class="opcional-label">opcional</span></label>
+        <input type="number" id="e-frete" placeholder="0.00 — será somado ao custo" min="0" step="0.01" inputmode="decimal"/>
+      </div>
+      <div class="frete-highlight" id="frete-preview" style="display:none;">
+        💡 Custo total com frete: <span id="frete-total">R$ 0,00</span> por unidade
+      </div>
       <button class="btn green" onclick="registrarEntrada()">Registrar entrada</button>
     </div>
 
     <!-- SAÍDA -->
     <div id="form-saida" style="display:none;">
-      <div class="field"><label>Peça utilizada</label><select id="s-peca"><option value="">Selecione uma peça...</option></select></div>
+      <div class="field"><label>Peça utilizada</label><select id="s-peca" onchange="popularSelects()"><option value="">Selecione uma peça...</option></select></div>
       <div class="field"><label>Loja</label>
         <select id="s-loja">
           <option value="">Selecione a loja...</option>
@@ -223,7 +251,13 @@
     <div class="badge">Em estoque</div>
     <h1>Peças <span>Disponíveis</span></h1>
   </div>
-  <div class="section"><div id="lista-estoque"></div></div>
+  <div class="section">
+    <div class="search-wrap">
+      <span class="search-ico">🔍</span>
+      <input type="text" id="busca-estoque" placeholder="Buscar por nome, marca, modelo..." oninput="renderEstoque()"/>
+    </div>
+    <div id="lista-estoque"></div>
+  </div>
 </div>
 
 <!-- HISTÓRICO -->
@@ -246,35 +280,80 @@
   </div>
   <div class="section">
     <div class="info-box">Somente saídas são incluídas. Devoluções e defeitos são excluídos automaticamente.</div>
-    <div class="field" style="margin-bottom:1rem;">
+
+    <div class="field" style="margin-bottom:12px;">
       <label style="font-family:var(--fm);font-size:11px;color:var(--muted2);display:block;margin-bottom:6px;letter-spacing:0.08em;text-transform:uppercase;">Período</label>
-      <select id="filtro-periodo" onchange="renderRecibo()">
+      <select id="filtro-periodo" onchange="toggleDataCustom();renderRecibo()">
         <option value="tudo">Todo o período</option>
         <option value="hoje">Hoje</option>
         <option value="semana">Últimos 7 dias</option>
         <option value="mes">Este mês</option>
+        <option value="custom">📅 Data personalizada</option>
       </select>
     </div>
+
+    <div id="filtro-custom" style="display:none;margin-bottom:12px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="field" style="margin-bottom:0;">
+          <label style="font-family:var(--fm);font-size:11px;color:var(--muted2);display:block;margin-bottom:6px;letter-spacing:0.08em;text-transform:uppercase;">De</label>
+          <input type="date" id="data-inicio" onchange="renderRecibo()" style="font-size:13px;padding:11px 10px;"/>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label style="font-family:var(--fm);font-size:11px;color:var(--muted2);display:block;margin-bottom:6px;letter-spacing:0.08em;text-transform:uppercase;">Até</label>
+          <input type="date" id="data-fim" onchange="renderRecibo()" style="font-size:13px;padding:11px 10px;"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="field" style="margin-bottom:1rem;">
+      <label style="font-family:var(--fm);font-size:11px;color:var(--muted2);display:block;margin-bottom:6px;letter-spacing:0.08em;text-transform:uppercase;">Fornecedor</label>
+      <select id="filtro-fornecedor" onchange="renderRecibo()">
+        <option value="">Todos os fornecedores</option>
+      </select>
+    </div>
+
     <div id="recibo-preview"></div>
-    <button class="btn green" onclick="abrirRecibo()" style="margin-top:1rem;">Gerar e compartilhar recibo</button>
+    <button class="btn green" onclick="abrirRecibo()" style="margin-top:1rem;">Gerar recibo completo</button>
   </div>
 </div>
 
 <script>
-const LOJAS = ['Américas','Recreio','Rio Designer','Center','Metropolitano'];
-let tipoAtual = 'entrada';
-let reciboCache = {};
+const LOJAS=['Américas','Recreio','Rio Designer','Center','Metropolitano'];
+let tipoAtual='entrada';
+let reciboCache={};
+let reciboTextoCache='';
 
-function dados(){ return JSON.parse(localStorage.getItem('est_movs')||'[]'); }
-function salvar(m){ localStorage.setItem('est_movs', JSON.stringify(m)); }
-function fmt(v){ return 'R$ '+(+v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function fmtData(ts){ const d=new Date(ts); return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+function dados(){return JSON.parse(localStorage.getItem('est_movs')||'[]');}
+function salvar(m){localStorage.setItem('est_movs',JSON.stringify(m));}
+function fmt(v){return 'R$ '+(+v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtData(ts){const d=new Date(ts);return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
 
 function toast(msg){
   const el=document.getElementById('toast');
-  el.textContent=msg; el.classList.add('show');
+  el.textContent=msg;el.classList.add('show');
   setTimeout(()=>el.classList.remove('show'),2500);
 }
+
+// frete preview
+document.addEventListener('DOMContentLoaded',()=>{
+  const eValor=document.getElementById('e-valor');
+  const eFrete=document.getElementById('e-frete');
+  const eQty=document.getElementById('e-qty');
+  function atualizarFrete(){
+    const val=parseFloat(eValor.value)||0;
+    const frete=parseFloat(eFrete.value)||0;
+    const qty=parseInt(eQty.value)||1;
+    const prev=document.getElementById('frete-preview');
+    if(frete>0&&val>0){
+      const porUnid=val+(frete/qty);
+      document.getElementById('frete-total').textContent=fmt(porUnid);
+      prev.style.display='block';
+    } else {
+      prev.style.display='none';
+    }
+  }
+  [eValor,eFrete,eQty].forEach(el=>{if(el)el.addEventListener('input',atualizarFrete);});
+});
 
 function ir(pg){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -285,7 +364,7 @@ function ir(pg){
   if(pg==='estoque') renderEstoque();
   if(pg==='historico') renderHistorico();
   if(pg==='registrar') popularSelects();
-  if(pg==='recibo') renderRecibo();
+  if(pg==='recibo'){popularFornecedores();renderRecibo();}
 }
 
 function setTipo(t){
@@ -302,8 +381,14 @@ function setTipo(t){
 function calcEstoque(movs){
   const est={};
   movs.forEach(m=>{
-    if(!est[m.nome]) est[m.nome]={qty:0,valor:0,fornecedor:''};
-    if(m.tipo==='entrada'){ est[m.nome].qty+=m.qty; est[m.nome].valor=m.valor; if(m.fornecedor) est[m.nome].fornecedor=m.fornecedor; }
+    if(!est[m.nome]) est[m.nome]={qty:0,valor:0,fornecedor:'',frete:0};
+    if(m.tipo==='entrada'){
+      est[m.nome].qty+=m.qty;
+      est[m.nome].valor=m.valorTotal||m.valor;
+      est[m.nome].valorBase=m.valor;
+      est[m.nome].frete=m.frete||0;
+      if(m.fornecedor) est[m.nome].fornecedor=m.fornecedor;
+    }
     if(m.tipo==='saida') est[m.nome].qty-=m.qty;
     if(m.tipo==='devolucao'||m.tipo==='defeito') est[m.nome].qty-=m.qty;
   });
@@ -329,19 +414,37 @@ function popularSelects(){
   });
 }
 
+function popularFornecedores(){
+  const movs=dados();
+  const fornecedores=[...new Set(movs.filter(m=>m.tipo==='entrada'&&m.fornecedor).map(m=>m.fornecedor))];
+  const sel=document.getElementById('filtro-fornecedor');
+  const atual=sel.value;
+  sel.innerHTML='<option value="">Todos os fornecedores</option>';
+  fornecedores.forEach(f=>{
+    const op=document.createElement('option');
+    op.value=f; op.textContent=f;
+    sel.appendChild(op);
+  });
+  if(atual) sel.value=atual;
+}
+
 function registrarEntrada(){
   const nome=document.getElementById('e-nome').value.trim();
   const fornecedor=document.getElementById('e-fornecedor').value.trim();
   const qty=parseInt(document.getElementById('e-qty').value)||0;
   const valor=parseFloat(document.getElementById('e-valor').value)||0;
+  const frete=parseFloat(document.getElementById('e-frete').value)||0;
   if(!nome||qty<=0||valor<=0){toast('⚠ Preencha todos os campos');return;}
+  const valorTotal=valor+(frete/qty);
   const movs=dados();
-  movs.unshift({id:Date.now(),tipo:'entrada',nome,fornecedor,qty,valor,ts:Date.now()});
+  movs.unshift({id:Date.now(),tipo:'entrada',nome,fornecedor,qty,valor,frete,valorTotal,ts:Date.now()});
   salvar(movs);
   document.getElementById('e-nome').value='';
   document.getElementById('e-fornecedor').value='';
   document.getElementById('e-qty').value='';
   document.getElementById('e-valor').value='';
+  document.getElementById('e-frete').value='';
+  document.getElementById('frete-preview').style.display='none';
   toast('✅ Entrada registrada!');
 }
 
@@ -355,7 +458,8 @@ function registrarSaida(){
   const est=calcEstoque(movs);
   if(!est[nome]||est[nome].qty<qty){toast('⚠ Estoque insuficiente');return;}
   const valor=est[nome].valor;
-  movs.unshift({id:Date.now(),tipo:'saida',nome,loja,qty,valor,obs,ts:Date.now()});
+  const fornecedor=est[nome].fornecedor;
+  movs.unshift({id:Date.now(),tipo:'saida',nome,loja,qty,valor,fornecedor,obs,ts:Date.now()});
   salvar(movs);
   document.getElementById('s-peca').value='';
   document.getElementById('s-loja').value='';
@@ -383,6 +487,13 @@ function registrarDevolucao(){
   toast('✅ Registrado!');
 }
 
+// BUSCA INTELIGENTE — todas as palavras devem aparecer em qualquer ordem
+function matchBusca(nome, busca){
+  const palavras=busca.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  const alvo=nome.toLowerCase();
+  return palavras.every(p=>alvo.includes(p));
+}
+
 function tagTipo(t){
   const map={entrada:'Entrada',saida:'Saída',devolucao:'Devolução',defeito:'Defeito'};
   return `<span class="tag ${t}">${map[t]||t}</span>`;
@@ -397,13 +508,11 @@ function renderInicio(){
   const saidas=movs.filter(m=>m.tipo==='saida');
   const totalValor=saidas.reduce((a,m)=>a+(m.valor*m.qty),0);
   const semEstoque=pecas.filter(k=>est[k].qty<=0).length;
-
   document.getElementById('stats-box').innerHTML=`
     <div class="stat"><p class="stat-label">Tipos de peça</p><p class="stat-val blue">${totalPecas}</p></div>
     <div class="stat"><p class="stat-label">Itens em estoque</p><p class="stat-val green">${totalItens}</p></div>
     <div class="stat"><p class="stat-label">Total em saídas</p><p class="stat-val amber">${fmt(totalValor)}</p></div>
     <div class="stat"><p class="stat-label">Sem estoque</p><p class="stat-val ${semEstoque>0?'red':'green'}">${semEstoque}</p></div>`;
-
   const ul=document.getElementById('ultimas');
   const ultimas=movs.slice(0,6);
   if(!ultimas.length){ul.innerHTML='<div class="empty"><div class="empty-ico">📭</div>Nenhuma movimentação ainda</div>';return;}
@@ -422,19 +531,26 @@ function renderInicio(){
 function renderEstoque(){
   const movs=dados();
   const est=calcEstoque(movs);
-  const pecas=Object.keys(est);
+  const busca=document.getElementById('busca-estoque').value||'';
+  let pecas=Object.keys(est);
+  if(busca.trim()) pecas=pecas.filter(nome=>matchBusca(nome,busca));
   const el=document.getElementById('lista-estoque');
-  if(!pecas.length){el.innerHTML='<div class="empty"><div class="empty-ico">📦</div>Nenhuma peça cadastrada ainda</div>';return;}
+  if(!pecas.length){
+    el.innerHTML=busca?'<div class="empty"><div class="empty-ico">🔍</div>Nenhuma peça encontrada para "'+busca+'"</div>':'<div class="empty"><div class="empty-ico">📦</div>Nenhuma peça cadastrada ainda</div>';
+    return;
+  }
   el.innerHTML=pecas.map(nome=>{
     const e=est[nome];
     const cls=e.qty<=0?'zero':e.qty<=2?'low':'ok';
+    const temFrete=e.frete&&e.frete>0;
     return `<div class="est-item">
       <p class="est-nome">${nome}</p>
       <div class="est-row">
         <div class="est-info">
           <div>${e.fornecedor||'—'}</div>
-          <div>${fmt(e.valor)} / unid.</div>
-          <div>Total: ${fmt(e.valor*Math.max(e.qty,0))}</div>
+          <div>${fmt(e.valor)}/unid${temFrete?' (c/ frete)':''}</div>
+          ${temFrete?`<div style="color:var(--amber);font-size:11px;">Frete: ${fmt(e.frete)}</div>`:''}
+          <div>Estoque: ${fmt(e.valor*Math.max(e.qty,0))}</div>
         </div>
         <p class="est-qty ${cls}">${e.qty}</p>
       </div>
@@ -458,25 +574,45 @@ function renderHistorico(){
     </div>`).join('');
 }
 
+function toggleDataCustom(){
+  const v=document.getElementById('filtro-periodo').value;
+  document.getElementById('filtro-custom').style.display=v==='custom'?'block':'none';
+  if(v==='custom'){
+    // preenche datas padrão se vazias
+    const hoje=new Date().toISOString().split('T')[0];
+    if(!document.getElementById('data-inicio').value) document.getElementById('data-inicio').value=hoje;
+    if(!document.getElementById('data-fim').value) document.getElementById('data-fim').value=hoje;
+  }
+}
+
 function filtrarPeriodo(movs,periodo){
   const agora=Date.now();
-  const hoje=new Date(); hoje.setHours(0,0,0,0);
-  const mesInicio=new Date(); mesInicio.setDate(1); mesInicio.setHours(0,0,0,0);
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  const mesI=new Date();mesI.setDate(1);mesI.setHours(0,0,0,0);
+  if(periodo==='custom'){
+    const ini=document.getElementById('data-inicio').value;
+    const fim=document.getElementById('data-fim').value;
+    if(!ini||!fim) return movs;
+    const tsIni=new Date(ini+'T00:00:00').getTime();
+    const tsFim=new Date(fim+'T23:59:59').getTime();
+    return movs.filter(m=>m.ts>=tsIni&&m.ts<=tsFim);
+  }
   return movs.filter(m=>{
     if(periodo==='tudo') return true;
     if(periodo==='hoje') return m.ts>=hoje.getTime();
     if(periodo==='semana') return m.ts>=agora-7*24*60*60*1000;
-    if(periodo==='mes') return m.ts>=mesInicio.getTime();
+    if(periodo==='mes') return m.ts>=mesI.getTime();
     return true;
   });
 }
 
-function calcReciboData(periodo){
-  const movs=filtrarPeriodo(dados(),periodo).filter(m=>m.tipo==='saida');
+function calcReciboData(periodo,fornecedor){
+  let movs=filtrarPeriodo(dados(),periodo).filter(m=>m.tipo==='saida');
+  if(fornecedor) movs=movs.filter(m=>m.fornecedor===fornecedor);
   const por_loja={};
   movs.forEach(m=>{
     if(!por_loja[m.loja]) por_loja[m.loja]={};
-    if(!por_loja[m.loja][m.nome]) por_loja[m.loja][m.nome]={qty:0,valor:m.valor};
+    if(!por_loja[m.loja][m.nome]) por_loja[m.loja][m.nome]={qty:0,valor:m.valor,fornecedor:m.fornecedor||''};
     por_loja[m.loja][m.nome].qty+=m.qty;
   });
   return por_loja;
@@ -484,10 +620,11 @@ function calcReciboData(periodo){
 
 function renderRecibo(){
   const periodo=document.getElementById('filtro-periodo').value;
-  reciboCache=calcReciboData(periodo);
+  const fornecedor=document.getElementById('filtro-fornecedor').value;
+  reciboCache=calcReciboData(periodo,fornecedor);
   const el=document.getElementById('recibo-preview');
   const lojas=LOJAS.filter(l=>reciboCache[l]);
-  if(!lojas.length){el.innerHTML='<div class="empty"><div class="empty-ico">🧾</div>Nenhuma saída no período selecionado</div>';return;}
+  if(!lojas.length){el.innerHTML='<div class="empty"><div class="empty-ico">🧾</div>Nenhuma saída no período/filtro selecionado</div>';return;}
   let grand=0;
   let html='';
   lojas.forEach(loja=>{
@@ -498,49 +635,82 @@ function renderRecibo(){
       const p=pecas[nome];
       const sub=p.qty*p.valor;
       totalLoja+=sub;
-      itens+=`<div class="recibo-item">
-        <div><p class="recibo-nome">${nome}</p><p class="recibo-qtd">x${p.qty} · ${fmt(p.valor)}/un</p></div>
-        <p class="recibo-val">${fmt(sub)}</p>
+      itens+=`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px;">
+        <div><span style="color:var(--text);">${nome}</span><br><span style="font-family:var(--fm);font-size:11px;color:var(--muted2);">x${p.qty} · ${fmt(p.valor)}/un</span></div>
+        <span style="font-family:var(--fm);color:var(--green);white-space:nowrap;margin-left:8px;">${fmt(sub)}</span>
       </div>`;
     });
     grand+=totalLoja;
-    html+=`<div class="card recibo-section">
-      <p class="recibo-loja">📍 ${loja}</p>
+    html+=`<div class="card" style="margin-bottom:10px;">
+      <p style="font-size:14px;font-weight:800;color:var(--accent);margin-bottom:10px;">📍 ${loja}</p>
       ${itens}
-      <div class="recibo-total-loja"><span>Subtotal ${loja}</span><span>${fmt(totalLoja)}</span></div>
+      <div style="display:flex;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid var(--border2);font-size:12px;">
+        <span style="color:var(--muted2);font-family:var(--fm);">Subtotal</span>
+        <span style="font-family:var(--fm);color:var(--amber);font-weight:600;">${fmt(totalLoja)}</span>
+      </div>
     </div>`;
   });
-  html+=`<div class="recibo-grand"><span>Total geral</span><span>${fmt(grand)}</span></div>`;
+  html+=`<div style="background:var(--surface2);border-radius:14px;padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;">
+    <span style="font-size:14px;font-weight:600;">Total geral</span>
+    <span style="font-family:var(--fm);font-size:22px;font-weight:500;color:var(--green);">${fmt(grand)}</span>
+  </div>`;
   el.innerHTML=html;
 }
 
 function abrirRecibo(){
   const lojas=LOJAS.filter(l=>reciboCache[l]);
   if(!lojas.length){toast('⚠ Nenhuma saída no período');return;}
-  let grand=0;
+  const periodo=document.getElementById('filtro-periodo').value;
+  const fornecedor=document.getElementById('filtro-fornecedor').value;
   const dataHora=new Date().toLocaleDateString('pt-BR')+' às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-  let html=`<p style="font-size:12px;color:var(--muted2);font-family:var(--fm);margin-bottom:1.25rem;">Gerado em ${dataHora}</p>`;
+  let periodoLabel={tudo:'Todo o período',hoje:'Hoje',semana:'Últimos 7 dias',mes:'Este mês'}[periodo];
+  if(periodo==='custom'){
+    const ini=document.getElementById('data-inicio').value;
+    const fim=document.getElementById('data-fim').value;
+    const fmtD=d=>d.split('-').reverse().join('/');
+    periodoLabel=ini===fim?fmtD(ini):fmtD(ini)+' a '+fmtD(fim);
+  }
+
+  let grand=0;
+  let txt=`🧾 RECIBO DE PEÇAS\n${new Date().toLocaleDateString('pt-BR')}\n`;
+  if(fornecedor) txt+=`Fornecedor: ${fornecedor}\n`;
+  txt+=`${'─'.repeat(32)}\n\n`;
+
+  let htmlLojas='';
   lojas.forEach(loja=>{
     const pecas=reciboCache[loja];
     let totalLoja=0;
-    let itens='';
+    let itensHTML='';
+    let itensTXT=`📍 ${loja}\n`;
     Object.keys(pecas).forEach(nome=>{
       const p=pecas[nome];
       const sub=p.qty*p.valor;
       totalLoja+=sub;
-      itens+=`<div class="recibo-item">
-        <div><p class="recibo-nome">${nome}</p><p class="recibo-qtd">x${p.qty} · ${fmt(p.valor)}/un</p></div>
-        <p class="recibo-val">${fmt(sub)}</p>
+      itensHTML+=`<div class="rp-item">
+        <div><p class="rp-nome">${nome}</p><p class="rp-det">x${p.qty} · ${fmt(p.valor)}/unid.</p></div>
+        <p class="rp-val">${fmt(sub)}</p>
       </div>`;
+      itensTXT+=`  • ${nome} x${p.qty} = ${fmt(sub)}\n`;
     });
     grand+=totalLoja;
-    html+=`<div class="recibo-section">
-      <p class="recibo-loja">📍 ${loja}</p>
-      ${itens}
-      <div class="recibo-total-loja"><span>Subtotal ${loja}</span><span>${fmt(totalLoja)}</span></div>
-    </div><hr class="divider"/>`;
+    htmlLojas+=`<p class="rp-loja-title">📍 ${loja}</p>${itensHTML}
+      <div class="rp-subtotal"><span>Subtotal ${loja}</span><span>${fmt(totalLoja)}</span></div>`;
+    txt+=itensTXT+`  Subtotal: ${fmt(totalLoja)}\n\n`;
   });
-  html+=`<div class="recibo-grand"><span>💰 Total geral</span><span>${fmt(grand)}</span></div>`;
+
+  txt+=`${'─'.repeat(32)}\n💰 TOTAL GERAL: ${fmt(grand)}`;
+  reciboTextoCache=txt;
+
+  const html=`<div class="recibo-print" id="recibo-print-area">
+    <div class="rp-header">
+      <p class="rp-title">RECIBO DE PEÇAS</p>
+      <p class="rp-sub">${dataHora}${fornecedor?' · '+fornecedor:''} · ${periodoLabel}</p>
+    </div>
+    ${htmlLojas}
+    <div class="rp-grand"><span>TOTAL GERAL</span><span>${fmt(grand)}</span></div>
+    <p class="rp-footer">Assistência Técnica · gerado automaticamente</p>
+  </div>`;
+
   document.getElementById('reciboConteudo').innerHTML=html;
   document.getElementById('modalRecibo').classList.add('open');
 }
@@ -550,36 +720,18 @@ function fecharRecibo(){
 }
 
 function compartilharRecibo(){
-  const lojas=LOJAS.filter(l=>reciboCache[l]);
-  if(!lojas.length){toast('⚠ Sem dados');return;}
-  const dataHora=new Date().toLocaleDateString('pt-BR');
-  let txt=`🧾 RECIBO DE PEÇAS — ${dataHora}\n${'─'.repeat(32)}\n\n`;
-  let grand=0;
-  lojas.forEach(loja=>{
-    txt+=`📍 ${loja}\n`;
-    let total=0;
-    Object.keys(reciboCache[loja]).forEach(nome=>{
-      const p=reciboCache[loja][nome];
-      const sub=p.qty*p.valor;
-      total+=sub;
-      txt+=`  • ${nome} x${p.qty} = ${fmt(sub)}\n`;
-    });
-    txt+=`  Subtotal: ${fmt(total)}\n\n`;
-    grand+=total;
-  });
-  txt+=`${'─'.repeat(32)}\n💰 TOTAL GERAL: ${fmt(grand)}`;
+  if(!reciboTextoCache){toast('⚠ Gere o recibo primeiro');return;}
   if(navigator.share){
-    navigator.share({title:'Recibo de Peças',text:txt}).catch(()=>{});
+    navigator.share({title:'Recibo de Peças',text:reciboTextoCache}).catch(()=>{});
   } else {
-    navigator.clipboard.writeText(txt).then(()=>toast('✅ Copiado!'));
+    navigator.clipboard.writeText(reciboTextoCache).then(()=>toast('✅ Copiado para área de transferência!'));
   }
 }
 
 function limparHistorico(){
   if(!confirm('Isso apagará TODOS os dados permanentemente. Tem certeza?')) return;
   localStorage.removeItem('est_movs');
-  renderHistorico();
-  renderInicio();
+  renderHistorico();renderInicio();
   toast('🗑 Histórico limpo');
 }
 
