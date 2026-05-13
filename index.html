@@ -134,6 +134,22 @@
     .info-box{background:var(--surface2);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--muted2);line-height:1.6;margin-bottom:1rem;}
     .frete-highlight{background:rgba(255,184,48,0.08);border:1px solid rgba(255,184,48,0.2);border-radius:12px;padding:10px 14px;margin-top:-6px;margin-bottom:14px;font-size:12px;color:var(--amber);font-family:var(--fm);}
 
+    /* Smart search dropdown */
+    .search-peca-wrap{position:relative;margin-bottom:14px;}
+    .search-peca-wrap input{padding-left:38px;}
+    .search-peca-ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;z-index:1;}
+    .peca-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;z-index:50;max-height:220px;overflow-y:auto;display:none;}
+    .peca-dropdown.open{display:block;}
+    .peca-option{padding:11px 14px;font-family:var(--fm);font-size:13px;cursor:pointer;border-bottom:1px solid var(--border);transition:background 0.15s;}
+    .peca-option:last-child{border-bottom:none;}
+    .peca-option:hover{background:var(--surface3);color:var(--accent);}
+    .peca-det{font-size:11px;color:var(--muted2);margin-top:2px;}
+    .peca-selected{background:rgba(79,142,247,0.1);border:1px solid rgba(79,142,247,0.3);border-radius:10px;padding:8px 12px;font-size:13px;font-family:var(--fm);color:var(--accent);margin-bottom:14px;display:none;}
+    /* Recibo tabs */
+    .recibo-tabs{display:flex;gap:8px;margin-bottom:1rem;}
+    .recibo-tab{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;color:var(--muted2);font-family:var(--fd);font-size:12px;font-weight:600;padding:10px 4px;cursor:pointer;text-align:center;transition:all 0.2s;}
+    .recibo-tab.active{background:rgba(79,142,247,0.1);border-color:rgba(79,142,247,0.35);color:var(--accent);}
+    .recibo-tab.devol.active{background:rgba(255,184,48,0.1);border-color:rgba(255,184,48,0.35);color:var(--amber);}
     /* Sync indicator */
     .sync-bar{display:flex;align-items:center;gap:8px;padding:8px 1.25rem;font-size:12px;font-family:var(--fm);color:var(--muted2);}
     .sync-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;}
@@ -213,7 +229,16 @@
 
     <!-- SAÍDA -->
     <div id="form-saida" style="display:none;">
-      <div class="field"><label>Peça utilizada</label><select id="s-peca"><option value="">Selecione uma peça...</option></select></div>
+      <div class="field">
+        <label>Peça utilizada</label>
+        <div class="search-peca-wrap">
+          <span class="search-peca-ico">🔍</span>
+          <input type="text" id="s-peca-busca" placeholder="Digite para buscar a peça..." oninput="filtrarPecaSaida()" onfocus="abrirDropdown()" autocomplete="off"/>
+          <div class="peca-dropdown" id="s-peca-dropdown"></div>
+        </div>
+        <div class="peca-selected" id="s-peca-selected"></div>
+        <input type="hidden" id="s-peca"/>
+      </div>
       <div class="field"><label>Loja</label>
         <select id="s-loja">
           <option value="">Selecione a loja...</option>
@@ -261,7 +286,7 @@
 <div class="page" id="page-historico">
   <div class="hdr"><div class="badge">Movimentações</div><h1>Histórico <span>Completo</span></h1></div>
   <div class="section">
-    <button class="btn danger" onclick="limparHistorico()" style="margin-bottom:1rem;font-size:13px;padding:11px;">🗑 Limpar todo o histórico</button>
+    <button class="btn danger" onclick="limparHistorico()" style="margin-bottom:1rem;font-size:13px;padding:11px;">🔐 Limpar todo o histórico</button>
     <div id="lista-historico"></div>
   </div>
 </div>
@@ -270,7 +295,12 @@
 <div class="page" id="page-recibo">
   <div class="hdr"><div class="badge">Fechamento</div><h1>Gerar <span>Recibo</span></h1></div>
   <div class="section">
-    <div class="info-box">Somente saídas são incluídas. Devoluções e defeitos são excluídos automaticamente.</div>
+    <div class="recibo-tabs">
+      <button class="recibo-tab active" id="tab-saidas" onclick="setReciboTab('saidas')">🧾 Saídas</button>
+      <button class="recibo-tab devol" id="tab-devolucoes" onclick="setReciboTab('devolucoes')">↩️ Devoluções</button>
+    </div>
+    <div id="recibo-saidas-panel">
+      <div class="info-box">Somente saídas são incluídas. Devoluções e defeitos são excluídos automaticamente.</div>
     <div class="field" style="margin-bottom:12px;">
       <label style="font-family:var(--fm);font-size:11px;color:var(--muted2);display:block;margin-bottom:6px;letter-spacing:0.08em;text-transform:uppercase;">Período</label>
       <select id="filtro-periodo" onchange="toggleDataCustom();renderRecibo()">
@@ -299,10 +329,47 @@
     </div>
     <div id="recibo-preview"></div>
     <button class="btn green" onclick="abrirRecibo()" style="margin-top:1rem;">Gerar recibo completo</button>
+    </div>
+    <div id="recibo-devolucoes-panel" style="display:none;">
+      <div class="info-box">Devoluções ao fornecedor e defeitos registrados no período selecionado.</div>
+      <div class="field" style="margin-bottom:12px;">
+        <label style="font-family:var(--fm);font-size:11px;color:var(--muted2);display:block;margin-bottom:6px;letter-spacing:0.08em;text-transform:uppercase;">Período</label>
+        <select id="filtro-periodo-devol" onchange="toggleDataCustomDevol();renderReciboDevol()">
+          <option value="tudo">Todo o período</option>
+          <option value="hoje">Hoje</option>
+          <option value="semana">Últimos 7 dias</option>
+          <option value="mes">Este mês</option>
+          <option value="custom">📅 Data personalizada</option>
+        </select>
+      </div>
+      <div id="filtro-custom-devol" style="display:none;margin-bottom:12px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="field" style="margin-bottom:0;">
+            <label style="font-family:var(--fm);font-size:11px;color:var(--muted2);display:block;margin-bottom:6px;letter-spacing:0.08em;text-transform:uppercase;">De</label>
+            <input type="date" id="data-inicio-devol" onchange="renderReciboDevol()" style="font-size:13px;padding:11px 10px;"/>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label style="font-family:var(--fm);font-size:11px;color:var(--muted2);display:block;margin-bottom:6px;letter-spacing:0.08em;text-transform:uppercase;">Até</label>
+            <input type="date" id="data-fim-devol" onchange="renderReciboDevol()" style="font-size:13px;padding:11px 10px;"/>
+          </div>
+        </div>
+      </div>
+      <div id="recibo-devol-preview"></div>
+      <button class="btn amber" onclick="abrirReciboDevol()" style="margin-top:1rem;">Gerar recibo de devoluções</button>
+    </div>
   </div>
 </div>
 
 <!-- FIREBASE SDK -->
+<script>
+// Stubs globais — serão sobrescritos pelo módulo
+['ir','setTipo','setModoSaida','filtrarPecaSaida','abrirDropdown','selecionarPecaSaida',
+ 'registrarEntrada','registrarSaida','registrarDevolucao','limparHistorico',
+ 'abrirRecibo','fecharRecibo','compartilharRecibo','abrirReciboDevol',
+ 'setReciboTab','toggleDataCustom','toggleDataCustomDevol','renderRecibo','renderReciboDevol','renderEstoque'
+].forEach(fn=>{ window[fn]=window[fn]||function(){ setTimeout(()=>{ if(window['_'+fn]) window['_'+fn](...arguments); },300); }; });
+window._reciboAtivo='saidas';
+</script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteField, writeBatch, getDocs, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -411,22 +478,67 @@ function calcEstoque(lista){
 }
 
 function popularSelects(){
+  // só devolucao ainda usa select
   const est=calcEstoque(movs);
   const pecas=Object.keys(est).filter(k=>est[k].qty>0);
-  ['s-peca','d-peca'].forEach(id=>{
-    const sel=document.getElementById(id);
-    if(!sel) return;
-    const atual=sel.value;
-    sel.innerHTML='<option value="">Selecione uma peça...</option>';
-    pecas.forEach(nome=>{
-      const op=document.createElement('option');
-      op.value=nome;
-      op.textContent=nome+' (x'+est[nome].qty+' · '+fmt(est[nome].valor)+')';
-      sel.appendChild(op);
-    });
-    if(atual) sel.value=atual;
+  const sel=document.getElementById('d-peca');
+  if(!sel) return;
+  const atual=sel.value;
+  sel.innerHTML='<option value="">Selecione uma peça...</option>';
+  pecas.forEach(nome=>{
+    const op=document.createElement('option');
+    op.value=nome;
+    op.textContent=nome+' (x'+est[nome].qty+' · '+fmt(est[nome].valor)+')';
+    sel.appendChild(op);
   });
+  if(atual) sel.value=atual;
+  // reset saida search
+  document.getElementById('s-peca').value='';
+  document.getElementById('s-peca-busca').value='';
+  document.getElementById('s-peca-selected').style.display='none';
+  document.getElementById('s-peca-selected').textContent='';
+  document.getElementById('s-peca-dropdown').classList.remove('open');
 }
+
+let _pecaSaidaCache=[];
+window.filtrarPecaSaida = function(){
+  const busca=document.getElementById('s-peca-busca').value;
+  const est=calcEstoque(movs);
+  const pecas=Object.keys(est).filter(k=>est[k].qty>0);
+  _pecaSaidaCache=pecas;
+  const palavras=busca.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  const filtradas=palavras.length?pecas.filter(n=>palavras.every(p=>n.toLowerCase().includes(p))):pecas;
+  const dd=document.getElementById('s-peca-dropdown');
+  if(!filtradas.length){ dd.innerHTML='<div class="peca-option" style="color:var(--muted);">Nenhuma peça encontrada</div>'; dd.classList.add('open'); return; }
+  dd.innerHTML=filtradas.map(nome=>`
+    <div class="peca-option" onclick="selecionarPecaSaida('${nome.replace(/'/g,"\\'")}')">
+      ${nome}
+      <div class="peca-det">x${est[nome].qty} · ${fmt(est[nome].valor)}/unid.</div>
+    </div>`).join('');
+  dd.classList.add('open');
+};
+
+window.abrirDropdown = function(){
+  filtrarPecaSaida();
+};
+
+window.selecionarPecaSaida = function(nome){
+  document.getElementById('s-peca').value=nome;
+  document.getElementById('s-peca-busca').value='';
+  document.getElementById('s-peca-busca').placeholder='Buscar outra peça...';
+  const sel=document.getElementById('s-peca-selected');
+  const est=calcEstoque(movs);
+  sel.textContent='✓ '+nome+' · '+fmt(est[nome]?.valor||0)+'/unid.';
+  sel.style.display='block';
+  document.getElementById('s-peca-dropdown').classList.remove('open');
+};
+
+// fechar dropdown ao clicar fora
+document.addEventListener('click', e=>{
+  if(!e.target.closest('.search-peca-wrap')){
+    document.getElementById('s-peca-dropdown')?.classList.remove('open');
+  }
+});
 
 function popularFornecedores(){
   const fornecedores=[...new Set(movs.filter(m=>m.tipo==='entrada'&&m.fornecedor).map(m=>m.fornecedor))];
@@ -444,7 +556,7 @@ window.registrarEntrada = async function(){
   const qty=parseInt(document.getElementById('e-qty').value)||0;
   const valor=parseFloat(document.getElementById('e-valor').value)||0;
   const frete=parseFloat(document.getElementById('e-frete').value)||0;
-  if(!nome||qty<=0||valor<=0){ toast('⚠ Preencha todos os campos'); return; }
+  if(!nome||qty<=0){ toast('⚠ Preencha nome e quantidade'); return; }
   const valorTotal=valor+(frete/qty);
   await addMov({tipo:'entrada',nome,fornecedor,qty,valor,frete,valorTotal,ts:Date.now()});
   document.getElementById('e-nome').value='';
@@ -694,23 +806,139 @@ window.abrirRecibo = function(){
     <p class="rp-footer">Assistência Técnica · gerado automaticamente</p>
   </div>`;
   document.getElementById('modalRecibo').classList.add('open');
+  window._reciboAtivo='saidas';
 };
 
-window.fecharRecibo = function(){ document.getElementById('modalRecibo').classList.remove('open'); };
+window.fecharRecibo = function(){
+  document.getElementById('modalRecibo').classList.remove('open');
+  window._reciboAtivo='saidas';
+};
 
 window.compartilharRecibo = function(){
-  if(!reciboTextoCache){ toast('⚠ Gere o recibo primeiro'); return; }
-  if(navigator.share){ navigator.share({title:'Recibo de Peças',text:reciboTextoCache}).catch(()=>{}); }
-  else { navigator.clipboard.writeText(reciboTextoCache).then(()=>toast('✅ Copiado!')); }
+  const txt=window._reciboAtivo==='devol'?_devolTextoCache:reciboTextoCache;
+  if(!txt){ toast('⚠ Gere o recibo primeiro'); return; }
+  if(navigator.share){ navigator.share({title:'Recibo',text:txt}).catch(()=>{}); }
+  else { navigator.clipboard.writeText(txt).then(()=>toast('✅ Copiado!')); }
 };
 
 window.limparHistorico = async function(){
-  if(!confirm('Isso apagará TODOS os dados permanentemente. Tem certeza?')) return;
+  const senha=prompt('Digite a senha para limpar o histórico:');
+  if(senha===null) return;
+  if(senha!=='2g@admin'){ toast('❌ Senha incorreta'); return; }
+  if(!confirm('Tem certeza? Isso apagará TODOS os dados permanentemente.')) return;
   const snap=await getDocs(collection(db,'movimentacoes'));
   const batch=writeBatch(db);
   snap.docs.forEach(d=>batch.delete(doc(db,'movimentacoes',d.id)));
   await batch.commit();
   toast('🗑 Histórico limpo');
+};
+
+window.setReciboTab = function(tab){
+  document.getElementById('tab-saidas').classList.toggle('active', tab==='saidas');
+  document.getElementById('tab-devolucoes').classList.toggle('active', tab==='devolucoes');
+  document.getElementById('recibo-saidas-panel').style.display=tab==='saidas'?'block':'none';
+  document.getElementById('recibo-devolucoes-panel').style.display=tab==='devolucoes'?'block':'none';
+  if(tab==='devolucoes') renderReciboDevol();
+};
+
+window.toggleDataCustomDevol = function(){
+  const v=document.getElementById('filtro-periodo-devol').value;
+  document.getElementById('filtro-custom-devol').style.display=v==='custom'?'block':'none';
+  if(v==='custom'){
+    const hoje=new Date().toISOString().split('T')[0];
+    if(!document.getElementById('data-inicio-devol').value) document.getElementById('data-inicio-devol').value=hoje;
+    if(!document.getElementById('data-fim-devol').value) document.getElementById('data-fim-devol').value=hoje;
+  }
+};
+
+function filtrarPeriodoDevol(lista){
+  const periodo=document.getElementById('filtro-periodo-devol').value;
+  const agora=Date.now();
+  const hoje=new Date(); hoje.setHours(0,0,0,0);
+  const mesI=new Date(); mesI.setDate(1); mesI.setHours(0,0,0,0);
+  if(periodo==='custom'){
+    const ini=document.getElementById('data-inicio-devol').value;
+    const fim=document.getElementById('data-fim-devol').value;
+    if(!ini||!fim) return lista;
+    return lista.filter(m=>m.ts>=new Date(ini+'T00:00:00').getTime()&&m.ts<=new Date(fim+'T23:59:59').getTime());
+  }
+  return lista.filter(m=>{
+    if(periodo==='tudo') return true;
+    if(periodo==='hoje') return m.ts>=hoje.getTime();
+    if(periodo==='semana') return m.ts>=agora-7*24*60*60*1000;
+    if(periodo==='mes') return m.ts>=mesI.getTime();
+    return true;
+  });
+}
+
+let _devolCache=[];
+function renderReciboDevol(){
+  const lista=filtrarPeriodoDevol(movs).filter(m=>m.tipo==='devolucao'||m.tipo==='defeito');
+  _devolCache=lista;
+  const el=document.getElementById('recibo-devol-preview');
+  if(!lista.length){ el.innerHTML='<div class="empty"><div class="empty-ico">↩️</div>Nenhuma devolução no período</div>'; return; }
+  const motiLabel={devolucao:'Devolução ao fornecedor',defeito:'Defeito / Não funcionou'};
+  let html='';
+  let total=0;
+  lista.forEach(m=>{
+    const sub=(m.valor||0)*m.qty;
+    total+=sub;
+    html+=`<div class="card" style="margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <p style="font-size:14px;font-weight:600;margin-bottom:4px;">${m.nome}</p>
+          <p style="font-size:11px;font-family:var(--fm);color:var(--amber);">${motiLabel[m.tipo]||m.tipo}</p>
+          ${m.obs?`<p style="font-size:11px;font-family:var(--fm);color:var(--muted2);margin-top:2px;">📝 ${m.obs}</p>`:''}
+          <p style="font-size:11px;font-family:var(--fm);color:var(--muted2);margin-top:2px;">${fmtData(m.ts)}</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="font-family:var(--fm);font-size:13px;color:var(--red);">x${m.qty}</p>
+          <p style="font-family:var(--fm);font-size:13px;color:var(--muted2);">${fmt(sub)}</p>
+        </div>
+      </div>
+    </div>`;
+  });
+  html+=`<div style="background:var(--surface2);border-radius:14px;padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+    <span style="font-size:14px;font-weight:600;">Total devolvido</span>
+    <span style="font-family:var(--fm);font-size:20px;color:var(--amber);">${fmt(total)}</span>
+  </div>`;
+  el.innerHTML=html;
+}
+
+let _devolTextoCache='';
+window.renderReciboDevol = renderReciboDevol;
+
+window.abrirReciboDevol = function(){
+  if(!_devolCache.length){ toast('⚠ Nenhuma devolução no período'); return; }
+  const motiLabel={devolucao:'Devolução ao fornecedor',defeito:'Defeito / Não funcionou'};
+  const dataHora=new Date().toLocaleDateString('pt-BR')+' às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  let total=0;
+  let itensHTML='';
+  let txt=`↩️ RECIBO DE DEVOLUÇÕES\n${new Date().toLocaleDateString('pt-BR')}\n${'─'.repeat(32)}\n\n`;
+  _devolCache.forEach(m=>{
+    const sub=(m.valor||0)*m.qty;
+    total+=sub;
+    itensHTML+=`<div class="rp-item">
+      <div>
+        <p class="rp-nome">${m.nome}</p>
+        <p class="rp-det">${motiLabel[m.tipo]||m.tipo}${m.obs?' · '+m.obs:''}</p>
+        <p class="rp-det">x${m.qty} · ${fmt(m.valor||0)}/unid. · ${fmtData(m.ts)}</p>
+      </div>
+      <p class="rp-val">${fmt(sub)}</p>
+    </div>`;
+    txt+=`• ${m.nome}\n  Motivo: ${motiLabel[m.tipo]||m.tipo}${m.obs?' · '+m.obs:''}\n  x${m.qty} = ${fmt(sub)}\n\n`;
+  });
+  txt+=`${'─'.repeat(32)}\n💰 TOTAL: ${fmt(total)}`;
+  _devolTextoCache=txt;
+  document.getElementById('reciboConteudo').innerHTML=`<div class="recibo-print">
+    <div class="rp-header"><p class="rp-title">RECIBO DE DEVOLUÇÕES</p><p class="rp-sub">${dataHora}</p></div>
+    ${itensHTML}
+    <div class="rp-grand"><span>TOTAL DEVOLVIDO</span><span>${fmt(total)}</span></div>
+    <p class="rp-footer">Assistência Técnica · gerado automaticamente</p>
+  </div>`;
+  document.getElementById('modalRecibo').classList.add('open');
+  // override compartilhar pra usar cache de devoluções
+  window._reciboAtivo='devol';
 };
 
 window.renderRecibo = renderRecibo;
