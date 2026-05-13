@@ -259,7 +259,16 @@
 
     <!-- DEVOLUÇÃO -->
     <div id="form-devolucao" style="display:none;">
-      <div class="field"><label>Peça</label><select id="d-peca"><option value="">Selecione uma peça...</option></select></div>
+      <div class="field">
+        <label>Peça</label>
+        <div class="search-peca-wrap">
+          <span class="search-peca-ico">🔍</span>
+          <input type="text" id="d-peca-busca" placeholder="Digite para buscar a peça..." oninput="filtrarPecaDevol()" onfocus="abrirDropdownDevol()" autocomplete="off"/>
+          <div class="peca-dropdown" id="d-peca-dropdown"></div>
+        </div>
+        <div class="peca-selected" id="d-peca-selected"></div>
+        <input type="hidden" id="d-peca"/>
+      </div>
       <div class="field"><label>Motivo</label>
         <select id="d-motivo">
           <option value="devolucao">Devolução ao fornecedor</option>
@@ -364,10 +373,11 @@
 <script>
 // Stubs globais — serão sobrescritos pelo módulo
 ['ir','setTipo','setModoSaida','filtrarPecaSaida','abrirDropdown','selecionarPecaSaida',
+ 'filtrarPecaDevol','abrirDropdownDevol','selecionarPecaDevol',
  'registrarEntrada','registrarSaida','registrarDevolucao','limparHistorico',
  'abrirRecibo','fecharRecibo','compartilharRecibo','abrirReciboDevol',
  'setReciboTab','toggleDataCustom','toggleDataCustomDevol','renderRecibo','renderReciboDevol','renderEstoque'
-].forEach(fn=>{ window[fn]=window[fn]||function(){ setTimeout(()=>{ if(window['_'+fn]) window['_'+fn](...arguments); },300); }; });
+].forEach(function(fn){ if(!window[fn]) window[fn]=function(){}; });
 window._reciboAtivo='saidas';
 </script>
 <script type="module">
@@ -407,7 +417,8 @@ const q = query(collection(db, 'movimentacoes'), orderBy('ts','desc'));
 onSnapshot(q, (snap) => {
   movs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   setSyncStatus('ok');
-  const pg = document.querySelector('.page.active')?.id?.replace('page-','');
+  const activePage = document.querySelector('.page.active');
+  const pg = activePage ? activePage.id.replace('page-','') : '';
   if(pg==='inicio') renderInicio();
   if(pg==='estoque') renderEstoque();
   if(pg==='historico') renderHistorico();
@@ -464,10 +475,11 @@ window.setModoSaida = function(modo){
 function calcEstoque(lista){
   const est={};
   [...lista].reverse().forEach(m=>{
-    if(!est[m.nome]) est[m.nome]={qty:0,valor:0,fornecedor:'',frete:0};
+    if(!est[m.nome]) est[m.nome]={qty:0,valor:0,valorBase:0,fornecedor:'',frete:0};
     if(m.tipo==='entrada'){
       est[m.nome].qty+=m.qty;
-      est[m.nome].valor=m.valorTotal||m.valor;
+      est[m.nome].valor=m.valorTotal||m.valor;   // com frete
+      est[m.nome].valorBase=m.valor||0;           // sem frete
       est[m.nome].frete=m.frete||0;
       if(m.fornecedor) est[m.nome].fornecedor=m.fornecedor;
     }
@@ -478,30 +490,62 @@ function calcEstoque(lista){
 }
 
 function popularSelects(){
-  // só devolucao ainda usa select
-  const est=calcEstoque(movs);
-  const pecas=Object.keys(est).filter(k=>est[k].qty>0);
-  const sel=document.getElementById('d-peca');
-  if(!sel) return;
-  const atual=sel.value;
-  sel.innerHTML='<option value="">Selecione uma peça...</option>';
-  pecas.forEach(nome=>{
-    const op=document.createElement('option');
-    op.value=nome;
-    op.textContent=nome+' (x'+est[nome].qty+' · '+fmt(est[nome].valor)+')';
-    sel.appendChild(op);
-  });
-  if(atual) sel.value=atual;
   // reset saida search
   document.getElementById('s-peca').value='';
   document.getElementById('s-peca-busca').value='';
+  document.getElementById('s-peca-busca').placeholder='Digite para buscar a peça...';
   document.getElementById('s-peca-selected').style.display='none';
   document.getElementById('s-peca-selected').textContent='';
   document.getElementById('s-peca-dropdown').classList.remove('open');
+  // reset devol search
+  document.getElementById('d-peca').value='';
+  document.getElementById('d-peca-busca').value='';
+  document.getElementById('d-peca-busca').placeholder='Digite para buscar a peça...';
+  document.getElementById('d-peca-selected').style.display='none';
+  document.getElementById('d-peca-selected').textContent='';
+  document.getElementById('d-peca-dropdown').classList.remove('open');
 }
 
-let _pecaSaidaCache=[];
-window.filtrarPecaSaida = function(){
+window.filtrarPecaDevol = function(){
+  const busca=document.getElementById('d-peca-busca').value;
+  const est=calcEstoque(movs);
+  const pecas=Object.keys(est).filter(k=>est[k].qty>0);
+  const palavras=busca.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  const filtradas=palavras.length?pecas.filter(n=>palavras.every(p=>n.toLowerCase().includes(p))):pecas;
+  const dd=document.getElementById('d-peca-dropdown');
+  if(!filtradas.length){ dd.innerHTML='<div class="peca-option" style="color:var(--muted);">Nenhuma peça encontrada</div>'; dd.classList.add('open'); return; }
+  dd.innerHTML=filtradas.map(nome=>`
+    <div class="peca-option" onclick="selecionarPecaDevol('${nome.replace(/'/g,"\\'")}')">
+      ${nome}
+      <div class="peca-det">x${est[nome].qty} · ${fmt(est[nome].valorBase||est[nome].valor)}/unid.</div>
+    </div>`).join('');
+  dd.classList.add('open');
+};
+
+window.abrirDropdownDevol = function(){
+  filtrarPecaDevol();
+};
+
+window.selecionarPecaDevol = function(nome){
+  document.getElementById('d-peca').value=nome;
+  document.getElementById('d-peca-busca').value='';
+  document.getElementById('d-peca-busca').placeholder='Buscar outra peça...';
+  const sel=document.getElementById('d-peca-selected');
+  const est=calcEstoque(movs);
+  sel.textContent='✓ '+nome+' · '+fmt((est[nome]&&(est[nome].valorBase||est[nome].valor))||0)+'/unid.';
+  sel.style.display='block';
+  document.getElementById('d-peca-dropdown').classList.remove('open');
+};
+
+// fechar dropdowns ao clicar fora
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.search-peca-wrap')){
+    var sd=document.getElementById('s-peca-dropdown');
+    var dd=document.getElementById('d-peca-dropdown');
+    if(sd) sd.classList.remove('open');
+    if(dd) dd.classList.remove('open');
+  }
+});
   const busca=document.getElementById('s-peca-busca').value;
   const est=calcEstoque(movs);
   const pecas=Object.keys(est).filter(k=>est[k].qty>0);
@@ -528,15 +572,16 @@ window.selecionarPecaSaida = function(nome){
   document.getElementById('s-peca-busca').placeholder='Buscar outra peça...';
   const sel=document.getElementById('s-peca-selected');
   const est=calcEstoque(movs);
-  sel.textContent='✓ '+nome+' · '+fmt(est[nome]?.valor||0)+'/unid.';
+  sel.textContent='✓ '+nome+' · '+fmt((est[nome]&&est[nome].valor)||0)+'/unid.';
   sel.style.display='block';
   document.getElementById('s-peca-dropdown').classList.remove('open');
 };
 
-// fechar dropdown ao clicar fora
-document.addEventListener('click', e=>{
+// fechar dropdowns ao clicar fora (saida)
+document.addEventListener('click', function(e){
   if(!e.target.closest('.search-peca-wrap')){
-    document.getElementById('s-peca-dropdown')?.classList.remove('open');
+    var sd=document.getElementById('s-peca-dropdown');
+    if(sd) sd.classList.remove('open');
   }
 });
 
@@ -593,7 +638,7 @@ window.registrarDevolucao = async function(){
   if(!nome||qty<=0){ toast('⚠ Preencha todos os campos'); return; }
   const est=calcEstoque(movs);
   if(!est[nome]||est[nome].qty<qty){ toast('⚠ Estoque insuficiente'); return; }
-  await addMov({tipo:motivo,nome,qty,valor:est[nome].valor,obs,ts:Date.now()});
+  await addMov({tipo:motivo,nome,qty,valor:est[nome].valorBase||est[nome].valor,obs,ts:Date.now()});
   document.getElementById('d-peca').value='';
   document.getElementById('d-qty').value='';
   document.getElementById('d-obs').value='';
