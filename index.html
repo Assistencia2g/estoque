@@ -546,6 +546,8 @@ document.addEventListener('click', function(e){
     if(dd) dd.classList.remove('open');
   }
 });
+
+window.filtrarPecaSaida = function(){
   const busca=document.getElementById('s-peca-busca').value;
   const est=calcEstoque(movs);
   const pecas=Object.keys(est).filter(k=>est[k].qty>0);
