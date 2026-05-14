@@ -539,26 +539,9 @@ reg("filtrarPecaDevol", function(){
   const dd=document.getElementById('d-peca-dropdown');
   if(!filtradas.length){ 
     dd.innerHTML='<div class="peca-option" style="color:var(--muted);">Nenhuma peça encontrada</div>';
-    dd.classList.add('open');
   } else {
-    dd.innerHTML=filtradas.map(function(nome){
-      return '<div class="peca-option" onclick="selecionarPecaDevol(\''+nome.replace(/'/g,"\\'")+'\')"><div>'+nome+'<div class="peca-det">x'+est[nome].qty+' · '+fmt(est[nome].valorBase||est[nome].valor)+'/unid.</div></div></div>';
-    }).join('');
-    dd.classList.add('open');
+    dd.innerHTML=filtradas.map(nome=>`<div class="peca-option" onclick="selecionarPecaDevol('${nome.replace(/'/g,"\\'")}')"><div>${nome}</div><div class="peca-det">x${est[nome].qty} · ${fmt(est[nome].valorBase||est[nome].valor)}/unid.</div></div>`).join('');
   }
-});reg("filtrarPecaDevol", function(){
-  const busca=document.getElementById('d-peca-busca').value;
-  const est=calcEstoque(movs);
-  const pecas=Object.keys(est).filter(k=>est[k].qty>0);
-  const palavras=busca.toLowerCase().trim().split(/\s+/).filter(Boolean);
-  const filtradas=palavras.length?pecas.filter(n=>palavras.every(p=>n.toLowerCase().includes(p))):pecas;
-  const dd=document.getElementById('d-peca-dropdown');
-  if(!filtradas.length){ dd.innerHTML='<div class="peca-option" style="color:var(--muted);">Nenhuma peça encontrada</div>'; dd.classList.add('open'); } else {
-    dd.innerHTML=filtradas.map(
-    <div class="peca-option" onclick="selecionarPecaDevol('${nome.replace(/'/g,"\\'")}')">
-      ${nome}
-      <div class="peca-det">x${est[nome].qty} · ${fmt(est[nome].valorBase||est[nome].valor)}/unid.</div>
-    </div>`).join('');
   dd.classList.add('open');
 });
 
@@ -593,14 +576,12 @@ document.addEventListener('click', function(e){
   const palavras=busca.toLowerCase().trim().split(/\s+/).filter(Boolean);
   const filtradas=palavras.length?pecas.filter(n=>palavras.every(p=>n.toLowerCase().includes(p))):pecas;
   const dd=document.getElementById('s-peca-dropdown');
-  if(!filtradas.length){ dd.innerHTML='<div class="peca-option" style="color:var(--muted);">Nenhuma peça encontrada</div>'; dd.classList.add('open'); } else {
-    dd.innerHTML=filtradas.map(
-    <div class="peca-option" onclick="selecionarPecaSaida('${nome.replace(/'/g,"\\'")}')">
-      ${nome}
-      <div class="peca-det">x${est[nome].qty} · ${fmt(est[nome].valor)}/unid.</div>
-    </div>`).join('');
+  if(!filtradas.length){ 
+    dd.innerHTML='<div class="peca-option" style="color:var(--muted);">Nenhuma peça encontrada</div>';
+  } else {
+    dd.innerHTML=filtradas.map(nome=>`<div class="peca-option" onclick="selecionarPecaSaida('${nome.replace(/'/g,"\\'")}')"><div>${nome}</div><div class="peca-det">x${est[nome].qty} · ${fmt(est[nome].valor)}/unid.</div></div>`).join('');
+  }
   dd.classList.add('open');
-};
 
 reg("abrirDropdown", function(){
   filtrarPecaSaida();
