@@ -224,6 +224,12 @@
       <div class="frete-highlight" id="frete-preview" style="display:none;">
         💡 Custo total com frete: <span id="frete-total">R$ 0,00</span> por unidade
       </div>
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-bottom:0;">
+          <input type="checkbox" id="e-paga" style="width:18px;height:18px;cursor:pointer;"/>
+          <span>✓ Já paga (não cobrar na saída)</span>
+        </label>
+      </div>
       <button class="btn green" onclick="registrarEntrada()">Registrar entrada</button>
     </div>
 
@@ -371,14 +377,22 @@
 
 <!-- FIREBASE SDK -->
 <script>
-// Stubs globais — serão sobrescritos pelo módulo
+window._reciboAtivo='saidas';
+// Fila de chamadas antes do módulo carregar
+window._queue={};
+function _stub(fn){
+  return function(){
+    var args=arguments;
+    if(window['_real_'+fn]) window['_real_'+fn].apply(this,args);
+    else { window._queue[fn]=window._queue[fn]||[]; window._queue[fn].push(args); }
+  };
+}
 ['ir','setTipo','setModoSaida','filtrarPecaSaida','abrirDropdown','selecionarPecaSaida',
  'filtrarPecaDevol','abrirDropdownDevol','selecionarPecaDevol',
  'registrarEntrada','registrarSaida','registrarDevolucao','limparHistorico',
  'abrirRecibo','fecharRecibo','compartilharRecibo','abrirReciboDevol',
  'setReciboTab','toggleDataCustom','toggleDataCustomDevol','renderRecibo','renderReciboDevol','renderEstoque'
-].forEach(function(fn){ if(!window[fn]) window[fn]=function(){}; });
-window._reciboAtivo='saidas';
+].forEach(function(fn){ window[fn]=_stub(fn); });
 </script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -431,6 +445,15 @@ function fmt(v){ return 'R$ '+(+v).toLocaleString('pt-BR',{minimumFractionDigits
 function fmtData(ts){ const d=new Date(ts); return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
 function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2500); }
 
+function reg(name, fn){
+  window['_real_'+name]=fn;
+  window[name]=fn;
+  if(window._queue&&window._queue[name]){
+    window._queue[name].forEach(function(args){ fn.apply(null,args); });
+    delete window._queue[name];
+  }
+}
+
 // ── FIRESTORE WRITE ──
 async function addMov(mov){
   try{
@@ -439,7 +462,7 @@ async function addMov(mov){
 }
 
 // ── NAV ──
-window.ir = function(pg){
+reg("ir", function(pg){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+pg).classList.add('active');
@@ -449,9 +472,9 @@ window.ir = function(pg){
   if(pg==='historico') renderHistorico();
   if(pg==='registrar') popularSelects();
   if(pg==='recibo'){ popularFornecedores(); renderRecibo(); }
-};
+});
 
-window.setTipo = function(t){
+reg("setTipo", function(t){
   tipoAtual=t;
   document.querySelectorAll('.tipo-btn').forEach(b=>b.classList.remove('active'));
   const map={entrada:'t-entrada',saida:'t-saida',devolucao:'t-devol'};
@@ -460,27 +483,28 @@ window.setTipo = function(t){
     document.getElementById('form-'+f).style.display=f===t?'block':'none';
   });
   if(t!=='entrada') popularSelects();
-};
+});
 
-window.setModoSaida = function(modo){
+reg("setModoSaida", function(modo){
   modoSaida=modo;
   document.getElementById('modo-usar').classList.toggle('active', modo==='usar');
   document.getElementById('modo-reservar').classList.toggle('active', modo==='reservar');
   document.getElementById('reservar-info').style.display=modo==='reservar'?'block':'none';
   document.getElementById('btn-registrar-saida').textContent=modo==='reservar'?'📌 Reservar para loja':'Registrar saída';
   document.getElementById('btn-registrar-saida').className='btn'+(modo==='reservar'?' amber':'');
-};
+});
 
 // ── CALC ESTOQUE ──
 function calcEstoque(lista){
   const est={};
   [...lista].reverse().forEach(m=>{
-    if(!est[m.nome]) est[m.nome]={qty:0,valor:0,valorBase:0,fornecedor:'',frete:0};
+    if(!est[m.nome]) est[m.nome]={qty:0,valor:0,valorBase:0,fornecedor:'',frete:0,paga:false};
     if(m.tipo==='entrada'){
       est[m.nome].qty+=m.qty;
-      est[m.nome].valor=m.valorTotal||m.valor;   // com frete
-      est[m.nome].valorBase=m.valor||0;           // sem frete
+      est[m.nome].valor=m.valorTotal||m.valor;
+      est[m.nome].valorBase=m.valor||0;
       est[m.nome].frete=m.frete||0;
+      est[m.nome].paga=m.paga||false;
       if(m.fornecedor) est[m.nome].fornecedor=m.fornecedor;
     }
     if(m.tipo==='saida') est[m.nome].qty-=m.qty;
@@ -506,7 +530,7 @@ function popularSelects(){
   document.getElementById('d-peca-dropdown').classList.remove('open');
 }
 
-window.filtrarPecaDevol = function(){
+reg("filtrarPecaDevol", function(){
   const busca=document.getElementById('d-peca-busca').value;
   const est=calcEstoque(movs);
   const pecas=Object.keys(est).filter(k=>est[k].qty>0);
@@ -520,13 +544,13 @@ window.filtrarPecaDevol = function(){
       <div class="peca-det">x${est[nome].qty} · ${fmt(est[nome].valorBase||est[nome].valor)}/unid.</div>
     </div>`).join('');
   dd.classList.add('open');
-};
+});
 
-window.abrirDropdownDevol = function(){
+reg("abrirDropdownDevol", function(){
   filtrarPecaDevol();
-};
+});
 
-window.selecionarPecaDevol = function(nome){
+reg("selecionarPecaDevol", function(nome){
   document.getElementById('d-peca').value=nome;
   document.getElementById('d-peca-busca').value='';
   document.getElementById('d-peca-busca').placeholder='Buscar outra peça...';
@@ -535,7 +559,7 @@ window.selecionarPecaDevol = function(nome){
   sel.textContent='✓ '+nome+' · '+fmt((est[nome]&&(est[nome].valorBase||est[nome].valor))||0)+'/unid.';
   sel.style.display='block';
   document.getElementById('d-peca-dropdown').classList.remove('open');
-};
+});
 
 // fechar dropdowns ao clicar fora
 document.addEventListener('click', function(e){
@@ -546,8 +570,6 @@ document.addEventListener('click', function(e){
     if(dd) dd.classList.remove('open');
   }
 });
-
-window.filtrarPecaSaida = function(){
   const busca=document.getElementById('s-peca-busca').value;
   const est=calcEstoque(movs);
   const pecas=Object.keys(est).filter(k=>est[k].qty>0);
@@ -564,11 +586,11 @@ window.filtrarPecaSaida = function(){
   dd.classList.add('open');
 };
 
-window.abrirDropdown = function(){
+reg("abrirDropdown", function(){
   filtrarPecaSaida();
-};
+});
 
-window.selecionarPecaSaida = function(nome){
+reg("selecionarPecaSaida", function(nome){
   document.getElementById('s-peca').value=nome;
   document.getElementById('s-peca-busca').value='';
   document.getElementById('s-peca-busca').placeholder='Buscar outra peça...';
@@ -577,7 +599,7 @@ window.selecionarPecaSaida = function(nome){
   sel.textContent='✓ '+nome+' · '+fmt((est[nome]&&est[nome].valor)||0)+'/unid.';
   sel.style.display='block';
   document.getElementById('s-peca-dropdown').classList.remove('open');
-};
+});
 
 // fechar dropdowns ao clicar fora (saida)
 document.addEventListener('click', function(e){
@@ -597,25 +619,27 @@ function popularFornecedores(){
 }
 
 // ── REGISTROS ──
-window.registrarEntrada = async function(){
+reg("registrarEntrada", async function(){
   const nome=document.getElementById('e-nome').value.trim();
   const fornecedor=document.getElementById('e-fornecedor').value.trim();
   const qty=parseInt(document.getElementById('e-qty').value)||0;
   const valor=parseFloat(document.getElementById('e-valor').value)||0;
   const frete=parseFloat(document.getElementById('e-frete').value)||0;
+  const paga=document.getElementById('e-paga').checked;
   if(!nome||qty<=0){ toast('⚠ Preencha nome e quantidade'); return; }
   const valorTotal=valor+(frete/qty);
-  await addMov({tipo:'entrada',nome,fornecedor,qty,valor,frete,valorTotal,ts:Date.now()});
+  await addMov({tipo:'entrada',nome,fornecedor,qty,valor,frete,valorTotal,paga,ts:Date.now()});
   document.getElementById('e-nome').value='';
   document.getElementById('e-fornecedor').value='';
   document.getElementById('e-qty').value='';
   document.getElementById('e-valor').value='';
   document.getElementById('e-frete').value='';
+  document.getElementById('e-paga').checked=false;
   document.getElementById('frete-preview').style.display='none';
   toast('✅ Entrada registrada!');
-};
+});
 
-window.registrarSaida = async function(){
+reg("registrarSaida", async function(){
   const nome=document.getElementById('s-peca').value;
   const loja=document.getElementById('s-loja').value;
   const qty=parseInt(document.getElementById('s-qty').value)||0;
@@ -630,9 +654,9 @@ window.registrarSaida = async function(){
   document.getElementById('s-qty').value='';
   document.getElementById('s-obs').value='';
   toast(modoSaida==='reservar'?'📌 Reservado para '+loja+'!':'✅ Saída registrada!');
-};
+});
 
-window.registrarDevolucao = async function(){
+reg("registrarDevolucao", async function(){
   const nome=document.getElementById('d-peca').value;
   const motivo=document.getElementById('d-motivo').value;
   const qty=parseInt(document.getElementById('d-qty').value)||0;
@@ -645,7 +669,7 @@ window.registrarDevolucao = async function(){
   document.getElementById('d-qty').value='';
   document.getElementById('d-obs').value='';
   toast('✅ Registrado!');
-};
+});
 
 // ── RENDERS ──
 function tagTipo(t){
@@ -727,7 +751,7 @@ function renderHistorico(){
     </div>`).join('');
 }
 
-window.toggleDataCustom = function(){
+reg("toggleDataCustom", function(){
   const v=document.getElementById('filtro-periodo').value;
   document.getElementById('filtro-custom').style.display=v==='custom'?'block':'none';
   if(v==='custom'){
@@ -735,7 +759,7 @@ window.toggleDataCustom = function(){
     if(!document.getElementById('data-inicio').value) document.getElementById('data-inicio').value=hoje;
     if(!document.getElementById('data-fim').value) document.getElementById('data-fim').value=hoje;
   }
-};
+});
 
 function filtrarPeriodo(lista,periodo){
   const agora=Date.now();
@@ -763,6 +787,9 @@ function calcReciboData(periodo,fornecedor){
   if(fornecedor) lista=lista.filter(m=>m.fornecedor===fornecedor);
   const por_loja={};
   lista.forEach(m=>{
+    // Busca a entrada original pra checar se foi marcada como "paga"
+    const entrada=movs.find(e=>e.tipo==='entrada'&&e.nome===m.nome);
+    if(entrada&&entrada.paga) return; // Pula se a entrada foi marcada como paga
     if(!por_loja[m.loja]) por_loja[m.loja]={};
     if(!por_loja[m.loja][m.nome]) por_loja[m.loja][m.nome]={qty:0,valor:m.valor,fornecedor:m.fornecedor||''};
     por_loja[m.loja][m.nome].qty+=m.qty;
@@ -809,7 +836,7 @@ function renderRecibo(){
   el.innerHTML=html;
 }
 
-window.abrirRecibo = function(){
+reg("abrirRecibo", function(){
   const lojas=LOJAS.filter(l=>reciboCache[l]);
   if(!lojas.length){ toast('⚠ Nenhuma saída no período'); return; }
   const periodo=document.getElementById('filtro-periodo').value;
@@ -854,21 +881,21 @@ window.abrirRecibo = function(){
   </div>`;
   document.getElementById('modalRecibo').classList.add('open');
   window._reciboAtivo='saidas';
-};
+});
 
-window.fecharRecibo = function(){
+reg("fecharRecibo", function(){
   document.getElementById('modalRecibo').classList.remove('open');
   window._reciboAtivo='saidas';
-};
+});
 
-window.compartilharRecibo = function(){
+reg("compartilharRecibo", function(){
   const txt=window._reciboAtivo==='devol'?_devolTextoCache:reciboTextoCache;
   if(!txt){ toast('⚠ Gere o recibo primeiro'); return; }
   if(navigator.share){ navigator.share({title:'Recibo',text:txt}).catch(()=>{}); }
   else { navigator.clipboard.writeText(txt).then(()=>toast('✅ Copiado!')); }
-};
+});
 
-window.limparHistorico = async function(){
+reg("limparHistorico", async function(){
   const senha=prompt('Digite a senha para limpar o histórico:');
   if(senha===null) return;
   if(senha!=='2g@admin'){ toast('❌ Senha incorreta'); return; }
@@ -878,17 +905,17 @@ window.limparHistorico = async function(){
   snap.docs.forEach(d=>batch.delete(doc(db,'movimentacoes',d.id)));
   await batch.commit();
   toast('🗑 Histórico limpo');
-};
+});
 
-window.setReciboTab = function(tab){
+reg("setReciboTab", function(tab){
   document.getElementById('tab-saidas').classList.toggle('active', tab==='saidas');
   document.getElementById('tab-devolucoes').classList.toggle('active', tab==='devolucoes');
   document.getElementById('recibo-saidas-panel').style.display=tab==='saidas'?'block':'none';
   document.getElementById('recibo-devolucoes-panel').style.display=tab==='devolucoes'?'block':'none';
   if(tab==='devolucoes') renderReciboDevol();
-};
+});
 
-window.toggleDataCustomDevol = function(){
+reg("toggleDataCustomDevol", function(){
   const v=document.getElementById('filtro-periodo-devol').value;
   document.getElementById('filtro-custom-devol').style.display=v==='custom'?'block':'none';
   if(v==='custom'){
@@ -896,7 +923,7 @@ window.toggleDataCustomDevol = function(){
     if(!document.getElementById('data-inicio-devol').value) document.getElementById('data-inicio-devol').value=hoje;
     if(!document.getElementById('data-fim-devol').value) document.getElementById('data-fim-devol').value=hoje;
   }
-};
+});
 
 function filtrarPeriodoDevol(lista){
   const periodo=document.getElementById('filtro-periodo-devol').value;
@@ -953,9 +980,9 @@ function renderReciboDevol(){
 }
 
 let _devolTextoCache='';
-window.renderReciboDevol = renderReciboDevol;
 
-window.abrirReciboDevol = function(){
+
+reg("abrirReciboDevol", function(){
   if(!_devolCache.length){ toast('⚠ Nenhuma devolução no período'); return; }
   const motiLabel={devolucao:'Devolução ao fornecedor',defeito:'Defeito / Não funcionou'};
   const dataHora=new Date().toLocaleDateString('pt-BR')+' às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
@@ -986,10 +1013,11 @@ window.abrirReciboDevol = function(){
   document.getElementById('modalRecibo').classList.add('open');
   // override compartilhar pra usar cache de devoluções
   window._reciboAtivo='devol';
-};
+});
 
-window.renderRecibo = renderRecibo;
-window.renderEstoque = renderEstoque;
+reg('renderRecibo', renderRecibo);
+reg('renderEstoque', renderEstoque);
+reg('renderReciboDevol', renderReciboDevol);
 
 // Frete preview
 document.getElementById('e-valor').addEventListener('input', atualizarFrete);
