@@ -645,7 +645,9 @@ reg("registrarSaida", async function(){
   const est=calcEstoque(movs);
   if(!est[nome]||est[nome].qty<qty){ toast('⚠ Estoque insuficiente'); return; }
   const tipo=modoSaida==='reservar'?'reserva':'saida';
-  await addMov({tipo,nome,loja,qty,valor:est[nome].valor,fornecedor:est[nome].fornecedor,obs,ts:Date.now()});
+  // Herda a flag "paga" da entrada
+  const paga=est[nome].paga||false;
+  await addMov({tipo,nome,loja,qty,valor:est[nome].valor,fornecedor:est[nome].fornecedor,obs,paga,ts:Date.now()});
   document.getElementById('s-peca').value='';
   document.getElementById('s-loja').value='';
   document.getElementById('s-qty').value='';
@@ -784,9 +786,8 @@ function calcReciboData(periodo,fornecedor){
   if(fornecedor) lista=lista.filter(m=>m.fornecedor===fornecedor);
   const por_loja={};
   lista.forEach(m=>{
-    // Busca a entrada original pra checar se foi marcada como "paga"
-    const entrada=movs.find(e=>e.tipo==='entrada'&&e.nome===m.nome);
-    if(entrada&&entrada.paga) return; // Pula se a entrada foi marcada como paga
+    // Se foi marcado como "paga", pula
+    if(m.paga) return;
     if(!por_loja[m.loja]) por_loja[m.loja]={};
     if(!por_loja[m.loja][m.nome]) por_loja[m.loja][m.nome]={qty:0,valor:m.valor,fornecedor:m.fornecedor||''};
     por_loja[m.loja][m.nome].qty+=m.qty;
@@ -987,6 +988,7 @@ reg("abrirReciboDevol", function(){
   let itensHTML='';
   let txt=`↩️ RECIBO DE DEVOLUÇÕES\n${new Date().toLocaleDateString('pt-BR')}\n${'─'.repeat(32)}\n\n`;
   _devolCache.forEach(m=>{
+    // Use valorBase (sem frete) - já foi salvo assim no registrarDevolucao
     const sub=(m.valor||0)*m.qty;
     total+=sub;
     itensHTML+=`<div class="rp-item">
@@ -1008,7 +1010,6 @@ reg("abrirReciboDevol", function(){
     <p class="rp-footer">Assistência Técnica · gerado automaticamente</p>
   </div>`;
   document.getElementById('modalRecibo').classList.add('open');
-  // override compartilhar pra usar cache de devoluções
   window._reciboAtivo='devol';
 });
 
