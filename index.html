@@ -405,20 +405,63 @@ async function addMov(mov) {
 function calcEstoque(lista) {
   const est = {};
   const reversed = lista.slice().reverse();
+
   for (let i = 0; i < reversed.length; i++) {
     const m = reversed[i];
-    if (!est[m.nome]) est[m.nome] = { qty: 0, valor: 0, valorBase: 0, fornecedor: '', frete: 0, paga: false };
+
+    if (!est[m.nome]) {
+      est[m.nome] = {
+        qty: 0,
+        valor: 0,
+        valorBase: 0,
+        fornecedor: '',
+        frete: 0,
+        paga: false,
+        paidQty: 0,
+        unpaidQty: 0
+      };
+    }
+
+    // ENTRADAS
     if (m.tipo === 'entrada') {
       est[m.nome].qty += m.qty;
+
       est[m.nome].valorBase = m.valor || 0;
       est[m.nome].frete = m.frete || 0;
       est[m.nome].valor = m.valorTotal || m.valor || 0;
-      est[m.nome].paga = m.paga || false;
-      if (m.fornecedor) est[m.nome].fornecedor = m.fornecedor;
+
+      if (m.fornecedor) {
+        est[m.nome].fornecedor = m.fornecedor;
+      }
+
+      // separa quantidades pagas e não pagas
+      if (m.paga) {
+        est[m.nome].paidQty += m.qty;
+      } else {
+        est[m.nome].unpaidQty += m.qty;
+      }
     }
-    if (m.tipo === 'saida' || m.tipo === 'reserva') est[m.nome].qty -= m.qty;
-    if (m.tipo === 'devolucao' || m.tipo === 'defeito') est[m.nome].qty -= m.qty;
+
+    // SAÍDAS
+    if (m.tipo === 'saida' || m.tipo === 'reserva') {
+      est[m.nome].qty -= m.qty;
+
+      // consome primeiro peças pagas
+      if (est[m.nome].paidQty >= m.qty) {
+        est[m.nome].paidQty -= m.qty;
+      } else {
+        const restante = m.qty - est[m.nome].paidQty;
+        est[m.nome].paidQty = 0;
+        est[m.nome].unpaidQty = Math.max(0, est[m.nome].unpaidQty - restante);
+      }
+    }
+
+    // DEVOLUÇÕES
+    if (m.tipo === 'devolucao' || m.tipo === 'defeito') {
+      est[m.nome].qty -= m.qty;
+    }
   }
+
   return est;
 }
 
@@ -587,9 +630,25 @@ window.registrarSaida = async function() {
   const est = calcEstoque(movs);
   if (!est[nome] || est[nome].qty < qty) { toast('⚠ Estoque insuficiente'); return; }
   const tipo = modoSaida === 'reservar' ? 'reserva' : 'saida';
-  // Herda flag "paga" da entrada
-  const paga = est[nome].paga || false;
-  await addMov({ tipo, nome, loja, qty, valor: est[nome].valor, fornecedor: est[nome].fornecedor, obs, paga, ts: Date.now() });
+  // se ainda existir estoque pago disponível,
+  // essa saída não irá para o recibo
+  let paga = false;
+
+  if (est[nome].paidQty >= qty) {
+    paga = true;
+  }
+
+  await addMov({
+    tipo,
+    nome,
+    loja,
+    qty,
+    valor: est[nome].valor,
+    fornecedor: est[nome].fornecedor,
+    obs,
+    paga,
+    ts: Date.now()
+  });
   resetSearches();
   document.getElementById('s-loja').value = '';
   document.getElementById('s-qty').value = '';
