@@ -228,8 +228,9 @@
       </div>
       <div class="field"><label>Quantidade</label><input type="number" id="s-qty" placeholder="1" min="1" inputmode="numeric"/></div>
       <div class="field"><label>Observação (opcional)</label><input type="text" id="s-obs" placeholder="Ex: iPhone 13 Pro Max"/></div>
-      <div style="display:flex;gap:8px;margin-bottom:8px;">
-        <button class="tipo-btn t-saida active" id="modo-usar" onclick="setModoSaida('usar')" style="font-size:12px;padding:10px 6px;">🔧 Usar agora</button>
+      <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+        <button class="tipo-btn t-saida active" id="modo-usar" onclick="setModoSaida('usar')" style="font-size:12px;padding:10px 6px;">🔧 Saída sem pagamento</button>
+        <button class="tipo-btn t-entrada" id="modo-pagamento" onclick="setModoSaida('pagamento')" style="font-size:12px;padding:10px 6px;">💰 Saída pagamento</button>
         <button class="tipo-btn t-devol" id="modo-reservar" onclick="setModoSaida('reservar')" style="font-size:12px;padding:10px 6px;">📌 Reservar</button>
       </div>
       <div id="reservar-info" style="display:none;background:rgba(255,184,48,0.08);border:1px solid rgba(255,184,48,0.2);border-radius:12px;padding:10px 14px;font-size:12px;color:var(--amber);font-family:'DM Mono',monospace;margin-bottom:8px;">
@@ -563,11 +564,24 @@ window.setTipo = function(t) {
 
 window.setModoSaida = function(modo) {
   modoSaida = modo;
+
   document.getElementById('modo-usar').classList.toggle('active', modo === 'usar');
+  document.getElementById('modo-pagamento').classList.toggle('active', modo === 'pagamento');
   document.getElementById('modo-reservar').classList.toggle('active', modo === 'reservar');
-  document.getElementById('reservar-info').style.display = modo === 'reservar' ? 'block' : 'none';
-  document.getElementById('btn-saida').textContent = modo === 'reservar' ? '📌 Reservar para loja' : 'Registrar saída';
-  document.getElementById('btn-saida').className = 'btn' + (modo === 'reservar' ? ' amber' : '');
+
+  document.getElementById('reservar-info').style.display =
+    modo === 'reservar' ? 'block' : 'none';
+
+  if (modo === 'reservar') {
+    document.getElementById('btn-saida').textContent = '📌 Reservar para loja';
+    document.getElementById('btn-saida').className = 'btn amber';
+  } else if (modo === 'pagamento') {
+    document.getElementById('btn-saida').textContent = '💰 Registrar saída com pagamento';
+    document.getElementById('btn-saida').className = 'btn green';
+  } else {
+    document.getElementById('btn-saida').textContent = '🔧 Registrar saída sem pagamento';
+    document.getElementById('btn-saida').className = 'btn';
+  }
 };
 
 function resetSearches() {
@@ -607,18 +621,16 @@ window.registrarEntrada = async function() {
   const qty = parseInt(document.getElementById('e-qty').value) || 0;
   const valor = parseFloat(document.getElementById('e-valor').value) || 0;
   const frete = parseFloat(document.getElementById('e-frete').value) || 0;
-  const paga = document.getElementById('e-paga').checked;
   if (!nome || qty <= 0) { toast('⚠ Preencha nome e quantidade'); return; }
   const valorTotal = valor + (frete / qty);
-  await addMov({ tipo: 'entrada', nome, fornecedor, qty, valor, frete, valorTotal, paga, ts: Date.now() });
+  await addMov({ tipo: 'entrada', nome, fornecedor, qty, valor, frete, valorTotal, ts: Date.now() });
   document.getElementById('e-nome').value = '';
   document.getElementById('e-fornecedor').value = '';
   document.getElementById('e-qty').value = '';
   document.getElementById('e-valor').value = '';
   document.getElementById('e-frete').value = '';
-  document.getElementById('e-paga').checked = false;
   document.getElementById('frete-preview').style.display = 'none';
-  toast('✅ Entrada registrada' + (paga ? ' (já paga)' : '') + '!');
+  toast('✅ Entrada registrada!');
 };
 
 window.registrarSaida = async function() {
@@ -630,13 +642,9 @@ window.registrarSaida = async function() {
   const est = calcEstoque(movs);
   if (!est[nome] || est[nome].qty < qty) { toast('⚠ Estoque insuficiente'); return; }
   const tipo = modoSaida === 'reservar' ? 'reserva' : 'saida';
-  // se ainda existir estoque pago disponível,
-  // essa saída não irá para o recibo
-  let paga = false;
-
-  if (est[nome].paidQty >= qty) {
-    paga = true;
-  }
+  // saída "pagamento" entra no recibo
+  // saída "usar" NÃO entra
+  let paga = modoSaida !== 'pagamento';
 
   await addMov({
     tipo,
